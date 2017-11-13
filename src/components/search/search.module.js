@@ -1,8 +1,9 @@
-import { SearchController } from './search.controller.js';
-import { searchComponent }  from './search.component.js';
+import angular from 'angular';
+import { SearchController } from './search.controller';
+import { searchComponent }  from './search.component';
 
-angular.module('searchModule', [])
-    .controller('searchController', SearchController)
+const searchModule = angular.module('searchModule', [])
+    .controller('SearchController', SearchController)
     .component('searchComponent', searchComponent);
 
 export { searchModule };

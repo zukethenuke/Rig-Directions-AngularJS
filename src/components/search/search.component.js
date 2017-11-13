@@ -1,7 +1,10 @@
-import { searchController } from './search.controller.js'
-import template from './search.tpl.html';
+import { SearchController } from './search.controller'
+import templateUrl from './search.tpl.html';
 
 const searchComponent = {
     bindings: {},
-    controller: searchController
+    controller: SearchController,
+    templateUrl: templateUrl
 }
+
+export { searchComponent };

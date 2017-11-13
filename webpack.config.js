@@ -13,15 +13,20 @@ module.exports = {
       },
       // {
       //   test: /\.html$/,
-      //   use: [
-      //   { loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src')) },
-      //   { loader: 'html-loader' }
-      //   ]
+      //   loader: "ngtemplate!html?module=myTemplates&relativeTo=" + 
+      //       (path.resolve(__dirname, './src/'))
       // }
       {
         test: /\.tpl.html$/,
-        loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src')) + '/!html'
+        use: [
+          { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname, './src')) },
+          { loader: 'html-loader' }
+        ]
       }
+      // {
+      //   test: /\.tpl.html$/,
+      //   loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src')) + '/!html'
+      // }
     ]
   }
 };
