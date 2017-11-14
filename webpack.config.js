@@ -10,13 +10,17 @@ module.exports = {
   module: {
     rules: [
       { 
-        test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" 
+        test: /\.js$/, use: 'babel-loader', exclude: /node_modules/, 
+      },
+      {
+        test: /\.html$/,
+        use: 'html-loader',
       },
       {
         test: /\.tpl.html$/,
         use: [
           { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname, './src')) },
-          { loader: 'html-loader' }
+          { loader: 'html-loader' },
         ]
       }
     ]
