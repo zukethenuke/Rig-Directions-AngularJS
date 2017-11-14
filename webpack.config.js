@@ -12,11 +12,6 @@ module.exports = {
       { 
         test: /\.js$/, exclude: /node_modules/, loader: "babel-loader" 
       },
-      // {
-      //   test: /\.html$/,
-      //   loader: "ngtemplate!html?module=myTemplates&relativeTo=" + 
-      //       (path.resolve(__dirname, './src/'))
-      // }
       {
         test: /\.tpl.html$/,
         use: [
@@ -24,10 +19,6 @@ module.exports = {
           { loader: 'html-loader' }
         ]
       }
-      // {
-      //   test: /\.tpl.html$/,
-      //   loader: 'ngtemplate?relativeTo=' + (path.resolve(__dirname, './src')) + '/!html'
-      // }
     ]
   }
 };

@@ -9,9 +9,6 @@ const directionsAppModule = angular.module('directionsAppModule', ["ngRoute", 's
         $routeProvider.when('/search', {template: `<search></search>`});
         $routeProvider.when('/near', {templateUrl: 'src/views/near.tpl.html'});
     })
-    // .controller('mainController', function() {
-
-    // })
 ;
 
 export { directionsAppModule };
