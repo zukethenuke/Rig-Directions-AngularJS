@@ -1,1 +1,1 @@
-export { searchModule } from './search.module.js';
+export { searchModule } from './search.module';
