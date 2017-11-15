@@ -7,7 +7,6 @@ const searchComponent = {
     bindings: {},
     controller: SearchController,
     template,
-    // templateUrl: './search.tpl.html'
 };
 
 export { searchComponent };
