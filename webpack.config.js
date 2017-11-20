@@ -22,7 +22,11 @@ module.exports = {
           { loader: 'ngtemplate-loader?relativeTo=' + (path.resolve(__dirname, './src')) },
           { loader: 'html-loader' },
         ]
-      }
+      },
+      // {
+      //   test: /\.css$/,
+      //   use: 'css-loader'
+      // }
     ]
   }
 };

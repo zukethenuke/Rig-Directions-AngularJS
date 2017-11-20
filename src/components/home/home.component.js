@@ -1,7 +1,11 @@
 import template from './home.html';
 
 const homeComponent = {
-    bindings: {},
+    bindings: {
+        url: '<',
+        icon: '<',
+        name: '<',
+    },
     template,
 };
 
