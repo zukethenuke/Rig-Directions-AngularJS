@@ -1,4 +1,16 @@
-<div class="list-group text-center">
+<style>
+    body {
+        padding: 20px;
+    }
+    .grid {
+        display: grid;
+        grid-template-rows: 1fr 1fr;
+        grid-gap: 1em;
+        height: 400px;
+    }
+</style>
+
+<div class="list-group text-center grid">
     <rd-button button-url="search" button-icon="fa-search" button-name="Search"></rd-button>
     <rd-button button-url="near" button-icon="fa-location-arrow" button-name="Near By"></rd-button>
 </div>
