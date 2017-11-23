@@ -1,4 +1,13 @@
-<div class="list-group text-center">
-    <rd-button button-url="search" button-icon="fa-search" button-name="Search"></rd-button>
-    <rd-button button-url="near" button-icon="fa-location-arrow" button-name="Near By"></rd-button>
+<style>
+    .home-screen {
+        display: grid;
+        grid-template-rows: minmax(1fr, 200) minmax(1fr, 200);
+        grid-gap: 1em;
+        margin: 10vw;
+    }
+</style>
+
+<div class="home-screen">
+    <rd-button classbutton-url="search" button-icon="fa-search">Search</rd-button>
+    <rd-button button-url="near" button-icon="fa-location-arrow">Near</rd-button>
 </div>

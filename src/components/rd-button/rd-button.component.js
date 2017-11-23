@@ -10,6 +10,7 @@ const rdButtonComponent = {
     },
     controller: RdButtonController,
     template,
+    transclude: true,
 }
 
 export { rdButtonComponent };

@@ -1,10 +1,26 @@
-<div class="rd-button list-group-item list-group-item-home">
-    <a ng-href="/#!/{{$ctrl.buttonUrl}}">
+<style>
+    .rd-button {
+        border: 2px solid lightblue;
+        border-radius: 25px;
+        height: 40vh;
+        width: 80vw;
+        /*padding: 16vh 0;*/
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }   
+</style>
+
+<a ng-href="/#!/{{$ctrl.buttonUrl}}">
+    <div class="rd-button">
         <div>
-            <i class="fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary"></i>
+            
+        <i class="fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary"></i>
         </div>
         <div>
-            <h3 class="home-heading">{{$ctrl.buttonName}}</h3>
+            
+        <h3 class="home-heading"><span ng-transclude></span></h3>
         </div>
-    </a>    
-</div>
+    </div>
+</a>    
