@@ -6,7 +6,6 @@ const rdButtonComponent = {
     bindings: {
         buttonUrl: '@',
         buttonIcon: '@',
-        buttonName: '@',
     },
     controller: RdButtonController,
     template,

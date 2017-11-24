@@ -1,5 +1,15 @@
+<style>
+    body, html {
+        overflow: visible;
+    }  
+</style>
+
 <a href="/#!/">Home</a>
 
 <h1>Search Component</h1>
 
-<input ng-model="searchValue" type="text" name="" placeholder="Operator/Lease/Well name">;
+<input ng-model="$ctrl.searchValue" type="text" name="" placeholder="Operator/Lease/Well name">
+
+<p>results</p>
+
+<p ng-if="$ctrl.searchValue" ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-1000">{{well.current_operator}} - {{well.lease_name}}</p>

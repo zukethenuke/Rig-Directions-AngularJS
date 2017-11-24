@@ -1,11 +1,11 @@
+import { HomeController } from './home.controller';
 import template from './home.html';
 
 const homeComponent = {
     bindings: {
-        url: '<',
-        icon: '<',
-        name: '<',
+        initialData: '<',
     },
+    controller: HomeController,
     template,
 };
 
