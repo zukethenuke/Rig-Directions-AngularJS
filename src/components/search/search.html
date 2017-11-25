@@ -8,8 +8,14 @@
 
 <h1>Search Component</h1>
 
+
 <input ng-model="$ctrl.searchValue" type="text" name="" placeholder="Operator/Lease/Well name">
 
 <p>results</p>
 
-<p ng-if="$ctrl.searchValue" ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-1000">{{well.current_operator}} - {{well.lease_name}}</p>
+<!-- <div ng-if="$ctrl.searchValue">
+    <p ng-repeat="well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000"></p>
+</div> -->
+<div ng-if="$ctrl.searchValue">
+    <rd-list-item ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-1000"" well="well"></rd-list-item>
+</div>
