@@ -1,1 +1,17 @@
-{{$ctrl.well}}
+<style>
+    .well-list-item {
+        border: 1px solid lightgrey;
+        line-height: 10px;
+        margin: 30px;
+        padding: 10px;
+    }
+
+</style>
+
+
+
+
+<div class="well-list-item">
+    <p>Operator: {{$ctrl.well.current_operator}}</p>
+    <p>Well Name: {{$ctrl.well.current_well_name}}</p>
+</div>

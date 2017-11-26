@@ -17,5 +17,5 @@
     <p ng-repeat="well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000"></p>
 </div> -->
 <div ng-if="$ctrl.searchValue">
-    <rd-list-item ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-1000"" well="well"></rd-list-item>
+    <rd-list-item ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-500"" well="well"></rd-list-item>
 </div>
