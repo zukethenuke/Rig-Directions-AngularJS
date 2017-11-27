@@ -8,10 +8,9 @@
 
 </style>
 
-
-
-
 <div class="well-list-item">
-    <p>Operator: {{$ctrl.well.current_operator}}</p>
-    <p>Well Name: {{$ctrl.well.current_well_name}}</p>
+    <a ng-href="/#!/well/{{$ctrl.well.id}}">
+        <p>Operator: {{$ctrl.well.current_operator}}</p>
+        <p>Well Name: {{$ctrl.well.current_well_name}}</p>
+    </a>
 </div>
