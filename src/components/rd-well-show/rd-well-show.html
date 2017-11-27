@@ -1,4 +1,19 @@
+<style>
+    .well-info {
+        border: 1px solid black;
+    }
 
-<div ng-repeat="(key, value) in $ctrl.well">
+    .rd-map {
+        margin: 20px;
+    }
+</style>
+
+
+
+<div class="well-info" ng-repeat="(key, value) in $ctrl.well">
     {{key}}: {{value}}
+</div>
+
+<div class="rd-map">
+    <rd-map></rd-map>
 </div>

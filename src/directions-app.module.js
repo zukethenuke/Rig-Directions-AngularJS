@@ -5,6 +5,7 @@ import { searchModule } from './components/search';
 import { homeModule } from './components/home';
 import { rdButtonModule } from './components/rd-button';
 import { rdWellShowModule } from './components/rd-well-show';
+import { rdMapModule } from './components/rd-map';
 
 const directionsAppModule = angular.module('directionsAppModule', [
     "ngRoute", 
@@ -13,6 +14,7 @@ const directionsAppModule = angular.module('directionsAppModule', [
     homeModule, 
     rdButtonModule, 
     rdWellShowModule,
+    rdMapModule,
 ])
     .config(function($routeProvider){
         // $routeProvider.when('/', {templateUrl: 'src/views/home.tpl.html'});
