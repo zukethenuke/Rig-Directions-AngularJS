@@ -3,7 +3,7 @@ import template from './rd-map.html';
 
 const RdMapComponent = {
     bindings: {
-        well: '<'
+        well: '<',
     },
     controller: RdMapController,
     template,

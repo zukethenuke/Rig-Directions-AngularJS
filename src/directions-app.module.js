@@ -17,13 +17,10 @@ const directionsAppModule = angular.module('directionsAppModule', [
     rdMapModule,
 ])
     .config(function($routeProvider){
-        // $routeProvider.when('/', {templateUrl: 'src/views/home.tpl.html'});
         $routeProvider
             .when('/', {template: `<home-component></home-component>`})
             .when('/search', {template: `<search-component></search-component>`})
             .when('/near', {templateUrl: 'src/views/near.tpl.html'})
-            .when('/well/:wellId', {template: `<rd-well-show></rd-well-show>`});
-
     })
 ;
 
