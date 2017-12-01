@@ -5,14 +5,15 @@ class RdWellShowController {
     }
 
     $onInit() {
-        // console.log('hello');
-        // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
-        //     .then((response) => {
-        //         this.well = response.data.well[0];
-        //     }, (response) => {
-        //         console.log('http error', response);
-        //     })
-    }
+        console.log('hello');
+        this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
+            .then((response) => {
+                this.well = response.data.well[0];
+            }, (response) => {
+                console.log('http error', response);
+            })
+
+        }
 
 
 }

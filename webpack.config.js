@@ -3,9 +3,10 @@ const webpack = require('webpack');
 
 module.exports = {
   entry: './src/index.js',
+  devtool: 'cheap-module-source-map',
   output: {
     filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist')
+    path: path.resolve(__dirname, 'build')
   },
   module: {
     rules: [

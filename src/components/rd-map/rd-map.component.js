@@ -5,8 +5,8 @@ const RdMapComponent = {
     bindings: {
         well: '<',
     },
-    controller: RdMapController,
     template,
+    controller: RdMapController,
 }
 
 export { RdMapComponent };
