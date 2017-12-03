@@ -7,14 +7,14 @@ class RdMapController {
     }
 
     $onInit() {
-        this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
-        .then((response) => {
-            let well = response.data.well[0];
-        }, (response) => {
-            console.log('http error', response);
-        }).then((well) => {
-            this.render(well);
-        })
+        // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
+        // .then((response) => {
+        //     let well = response.data.well[0];
+        // }, (response) => {
+        //     console.log('http error', response);
+        // }).then((well) => {
+        //     this.render(well);
+        // })
     }
 
     render(well) {
