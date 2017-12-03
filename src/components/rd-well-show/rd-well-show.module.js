@@ -9,15 +9,15 @@ const rdWellShowModule = angular
         $routeProvider
             .when('/well/:wellId', {
                 template: `<rd-well-show></rd-well-show>`,
-                resolve: function() {
-                    console.log('hello from resolve', this.wellId);
-                    this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
-                        .then((response) => {
-                            resolveWell = response.data.well[0];
-                        }, (response) => {
-                            console.log('http error', response);
-                        })
-                }
+                // resolve: function() {
+                //     console.log('hello from resolve', this.wellId);
+                //     this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
+                //         .then((response) => {
+                //             resolveWell = response.data.well[0];
+                //         }, (response) => {
+                //             console.log('http error', response);
+                //         })
+                // }
             })
 
     })
