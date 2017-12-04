@@ -60,7 +60,7 @@
     <a class="button" href="/#!/">Home</a>
     
     <div  class="input-wrapper">  
-        <input id="search-input" ng-model="$ctrl.searchValue" type="text" name="" placeholder="Operator/Lease/Well name">
+        <input id="search-input" ng-model="$ctrl.searchValue" ng-model-options="{ debounce: 800 }" type="text" ng-change="$ctrl.getWellList()" name="" placeholder="Operator/Lease/Well name">
     </div>
 
 
@@ -68,7 +68,7 @@
         <p ng-repeat="well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000"></p>
     </div> -->
 
-    <div ng-if="$ctrl.searchValue">
-        <rd-list-item ng-repeat="well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-500"" well="well"></rd-list-item>
+    <div ng-if="$ctrl.wells">
+        <rd-list-item ng-repeat="well in $ctrl.wells" well="well"></rd-list-item>
     </div>
 </div>

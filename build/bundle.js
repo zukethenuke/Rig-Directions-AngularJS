@@ -89,20 +89,19 @@ var RdMapController = function () {
     }
 
     _createClass(RdMapController, [{
-        key: '$onInit',
+        key: "$onInit",
         value: function $onInit() {
-            var _this = this;
-
-            this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId).then(function (response) {
-                var well = response.data.well[0];
-            }, function (response) {
-                console.log('http error', response);
-            }).then(function (well) {
-                _this.render(well);
-            });
+            // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
+            // .then((response) => {
+            //     let well = response.data.well[0];
+            // }, (response) => {
+            //     console.log('http error', response);
+            // }).then((well) => {
+            //     this.render(well);
+            // })
         }
     }, {
-        key: 'render',
+        key: "render",
         value: function render(well) {
             this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + this.well.latitude + "," + this.well.longitude;
         }
@@ -37807,7 +37806,7 @@ Object.defineProperty(exports,"__esModule",{value:true});var wells=[{"id":35,"cu
 /* 14 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    body, html {\n        overflow: visible;\n    }  \n</style>\n\n<a href=\"/#!/\">Home</a>\n\n<h1>Search Component</h1>\n\n\n<input ng-model=\"$ctrl.searchValue\" type=\"text\" name=\"\" placeholder=\"Operator/Lease/Well name\">\n\n\n<!-- <div ng-if=\"$ctrl.searchValue\">\n    <p ng-repeat=\"well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000\"></p>\n</div> -->\n\n<div ng-if=\"$ctrl.searchValue\">\n    <rd-list-item ng-repeat=\"well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-500\"\" well=\"well\"></rd-list-item>\n</div>\n";
+module.exports = "<style>\n    body {\n        background: #f2f2f2;\n    }\n\n    .button {\n        background: #FFFFFF;\n        margin-left: 20px;\n        margin-top: 10px;\n        width: 100px;\n        border: 1px solid lightgrey;\n        border-radius: 8px;\n        font-size: 14px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        box-shadow: 2px 3px 5px #888888;\n    }\n\n    #search-container {\n        display: grid;\n        grid-template-rows: 80px 100px 1fr;\n        grid-gap: 1em;\n        grid-template-areas: \"back\"\n                             \"input\"\n                             \"results\"; \n        /*padding: 8px;*/\n        /*height: 100vh;*/\n        /*background: #E9E9E9;*/\n\n    }\n\n    #search-input {\n        grid-area: input;\n        font-size: 20px;\n        padding: 20px 0 20px 20px;\n        background: #FFFFFF;\n        width: 100%;\n        box-shadow: 2px 3px 5px #888888;\n        border: 1px solid lightgrey;\n    }\n\n    .input-wrapper {  /* needed to create a div for full width input field */\n    margin-right: 20px;\n    padding: 20px;\n    }\n\n    .well-list-item {\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    line-height: 10px;\n    margin: 30px;\n    padding: 10px;\n    background: white;\n    box-shadow: 2px 3px 5px #888888;\n    }\n</style>\n\n<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div  class=\"input-wrapper\">  \n        <input id=\"search-input\" ng-model=\"$ctrl.searchValue\" type=\"text\" name=\"\" placeholder=\"Operator/Lease/Well name\">\n    </div>\n\n\n    <!-- <div ng-if=\"$ctrl.searchValue\">\n        <p ng-repeat=\"well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000\"></p>\n    </div> -->\n\n    <div ng-if=\"$ctrl.searchValue\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells | filter:$ctrl.searchValue | limitTo:-500\"\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
 
 /***/ }),
 /* 15 */
@@ -37932,7 +37931,7 @@ exports.HomeController = HomeController;
 /* 19 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    \n    .home-screen {\n        display: grid;\n        grid-template-rows: minmax(1fr, 200) minmax(1fr, 200);\n        grid-gap: 1em;\n        margin: 10vw;\n    }\n    \n</style>\n\n<div class=\"home-screen\">\n    <rd-button button-url=\"search\" button-icon=\"\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
+module.exports = "<style>\n    body {\n        background-color: #f2f2f2;\n    }\n    \n    .home-screen {\n        display: grid;\n        grid-template-rows: 1fr 1fr;\n        grid-gap: 2em;\n        margin: 5%;\n    }\n    \n</style>\n\n<div class=\"home-screen\">\n    <rd-button button-url=\"search\" button-icon=\"\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
 
 /***/ }),
 /* 20 */
@@ -38141,7 +38140,7 @@ exports.RdListItemController = RdListItemController;
 /* 29 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    .well-list-item {\n        border: 1px solid lightgrey;\n        line-height: 10px;\n        margin: 30px;\n        padding: 10px;\n    }\n\n</style>\n\n<div class=\"well-list-item\">\n    <a ng-href=\"/#!/well/{{$ctrl.well.id}}\">\n        <p>Operator: {{$ctrl.well.current_operator}}</p>\n        <p>Well Name: {{$ctrl.well.current_well_name}}</p>\n    </a>\n</div>";
+module.exports = "<div class=\"well-list-item\" >\n    <a ng-href=\"/#!/well/{{$ctrl.well.id}}\">\n        <p>Operator: {{$ctrl.well.current_operator}}</p>\n        <p>Well Name: {{$ctrl.well.current_well_name}}</p>\n    </a>\n</div>\n";
 
 /***/ }),
 /* 30 */
@@ -38249,7 +38248,7 @@ exports.RdButtonController = RdButtonController;
 /* 34 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    .rd-button {\n        border: 2px solid lightblue;\n        border-radius: 25px;\n        height: 40vh;\n        width: 80vw;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n    }   \n</style>\n\n<a ng-href=\"/#!/{{$ctrl.buttonUrl}}\">\n    <div class=\"rd-button\">\n        <i class=\"fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary\"></i>\n        <h3 class=\"home-heading\"><span ng-transclude></span></h3>\n    </div>\n</a>    ";
+module.exports = "<style>\n    .rd-button {\n        background-color: #FFFFFF;\n        border: 2px solid lightblue;\n        border-radius: 25px;\n        height: 45vh;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n    }   \n</style>\n\n<a ng-href=\"/#!/{{$ctrl.buttonUrl}}\">\n    <div class=\"rd-button\">\n        <i class=\"fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary\"></i>\n        <h3 class=\"home-heading\"><span ng-transclude></span></h3>\n    </div>\n</a>    ";
 
 /***/ }),
 /* 35 */
@@ -38295,16 +38294,19 @@ var _rdWellShow2 = __webpack_require__(41);
 
 var rdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFactory', _rdWellShow2.getWellFactory).component('rdWellShow', _rdWellShow.RdWellShowComponent).config(function ($routeProvider) {
     $routeProvider.when('/well/:wellId', {
-        template: '<rd-well-show></rd-well-show>'
-        // resolve: function() {
-        //     console.log('hello from resolve', this.wellId);
-        //     this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
-        //         .then((response) => {
-        //             resolveWell = response.data.well[0];
-        //         }, (response) => {
-        //             console.log('http error', response);
-        //         })
-        // }
+        template: '<rd-well-show></rd-well-show>',
+        resolve: function resolve() {
+            return function () {
+                console.log('hello from resolve');
+            };
+            // console.log('hello from resolve', this.wellId);
+            // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
+            //     .then((response) => {
+            //         resolveWell = response.data.well[0];
+            //     }, (response) => {
+            //         console.log('http error', response);
+            //     })
+        }
     });
 }).name;
 
@@ -38362,6 +38364,7 @@ var RdWellShowController = function () {
 
         this.$http = $http;
         this.wellId = $routeParams.wellId;
+        this.mapIsReady = false;
     }
 
     _createClass(RdWellShowController, [{
@@ -38374,6 +38377,9 @@ var RdWellShowController = function () {
                 _this.well = response.data.well[0];
             }, function (response) {
                 console.log('http error', response);
+            }).then(function () {
+                _this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + _this.well.latitude + "," + _this.well.longitude;
+                _this.mapIsReady = true;
             });
         }
     }]);
@@ -38387,7 +38393,7 @@ exports.RdWellShowController = RdWellShowController;
 /* 40 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    .well-info {\n        border: 1px solid black;\n    }\n\n    .rd-map-container {\n        margin: 20px;\n    }\n</style>\n\n<div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
+module.exports = "<style>\n    .well-info {\n        border: 1px solid black;\n    }\n\n    .rd-map-container {\n        margin: 20px;\n    }\n</style>\n\n<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"600\"\n        height=\"450\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
 
 /***/ }),
 /* 41 */
@@ -38510,7 +38516,7 @@ exports.RdMapComponent = RdMapComponent;
 /* 45 */
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"google-map\">\n    <iframe\n        width=\"600\"\n        height=\"450\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n{{$ctrl.well.latitude}},{{$ctrl.well.longitude}}";
+module.exports = "<!-- <div id=\"google-map\">\n    <iframe\n        width=\"600\"\n        height=\"450\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div> -->\n\n{{$ctrl.well.latitude}},{{$ctrl.well.longitude}}";
 
 /***/ })
 /******/ ]);
