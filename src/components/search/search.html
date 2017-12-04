@@ -10,7 +10,7 @@
         width: 100px;
         border: 1px solid lightgrey;
         border-radius: 8px;
-        font-size: 14px;
+        font-size: 20px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -54,6 +54,17 @@
     background: white;
     box-shadow: 2px 3px 5px #888888;
     }
+
+    #too-many-message {
+        background: #e57373;
+        color: #FFFFFF;
+        font-size: 20px;
+        padding: 40px;
+        margin: 20px 100px;
+        text-align: center;
+        border-radius: 8px;
+        box-shadow: 2px 3px 5px #888888;
+    }
 </style>
 
 <div id="search-container">
@@ -63,10 +74,9 @@
         <input id="search-input" ng-model="$ctrl.searchValue" ng-model-options="{ debounce: 800 }" type="text" ng-change="$ctrl.getWellList()" name="" placeholder="Operator/Lease/Well name">
     </div>
 
-
-    <!-- <div ng-if="$ctrl.searchValue">
-        <p ng-repeat="well in $ctrl.wells | fuzzy:$ctrl.searchValue | limitTo:-1000"></p>
-    </div> -->
+    <div id="too-many-message" ng-if="$ctrl.message">
+        {{$ctrl.message}}
+    </div>
 
     <div ng-if="$ctrl.wells">
         <rd-list-item ng-repeat="well in $ctrl.wells" well="well"></rd-list-item>

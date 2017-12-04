@@ -8,13 +8,26 @@ class SearchController {
     }
 
     getWellList() {
+        this.message = '';
         const searchValue = this.searchValue;
-        console.log(this.searchValue);
+
+        console.log(searchValue);
         this.$http({
             method: 'GET',
-            url: 'http://localhost:3000/api/wells/',
+            // url: 'http://localhost:3000/api/wells/',
+            url: 'https://mysterious-wildwood-62874.herokuapp.com/api/wells',
             params: {searchValue: searchValue}
-        }).then((response) => this.wells = response.data.wells);
+        }).then((response) => this.formatRseponse(response));
+    }
+
+    formatRseponse(response) {
+        if (response.data.error) {
+            console.log(response.data.error);
+            this.wells = [];
+            this.message = response.data.error;
+        }else {
+            this.wells = response.data.wells;
+        };
     }
 }
 
