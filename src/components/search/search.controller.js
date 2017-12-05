@@ -11,7 +11,6 @@ class SearchController {
         this.message = '';
         const searchValue = this.searchValue;
 
-        console.log(searchValue);
         this.$http({
             method: 'GET',
             // url: 'http://localhost:3000/api/wells/',
@@ -22,7 +21,6 @@ class SearchController {
 
     formatRseponse(response) {
         if (response.data.error) {
-            console.log(response.data.error);
             this.wells = [];
             this.message = response.data.error;
         }else {
