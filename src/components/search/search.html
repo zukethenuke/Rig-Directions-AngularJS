@@ -24,14 +24,18 @@
         grid-template-areas: "back"
                              "input"
                              "results"; 
-        /*padding: 8px;*/
-        /*height: 100vh;*/
-        /*background: #E9E9E9;*/
-
     }
 
-    #search-input {
+    .input-wrapper {  /* needed to create a div for full width input field */
         grid-area: input;
+        display: grid;
+        grid-template-columns: 6fr 1fr;
+        grid-template-areas: s s s s s x
+        margin-right: 20px;
+        padding: 20px;
+    }
+
+    .search-box {
         font-size: 20px;
         padding: 20px 0 20px 20px;
         background: #FFFFFF;
@@ -40,22 +44,23 @@
         border: 1px solid lightgrey;
     }
 
-    .input-wrapper {  /* needed to create a div for full width input field */
-    margin-right: 20px;
-    padding: 20px;
+    .close-icon {
+        box-shadow: 2px 3px 5px #888888;
+        border: 1px solid lightgrey;
+        border-left-color: transparent;
     }
 
     .well-list-item {
-    border: 1px solid lightgrey;
-    border-radius: 8px;
-    line-height: 10px;
-    margin: 30px;
-    padding: 10px;
-    background: white;
-    box-shadow: 2px 3px 5px #888888;
+        border: 1px solid lightgrey;
+        border-radius: 8px;
+        line-height: 10px;
+        margin: 30px;
+        padding: 10px;
+        background: white;
+        box-shadow: 2px 3px 5px #888888;
     }
 
-    #too-many-message {
+    #message {
         background: #e57373;
         color: #FFFFFF;
         font-size: 20px;
@@ -70,11 +75,12 @@
 <div id="search-container">
     <a class="button" href="/#!/">Home</a>
     
-    <div  class="input-wrapper">  
-        <input id="search-input" ng-model="$ctrl.searchValue" ng-model-options="{ debounce: 800 }" type="text" ng-change="$ctrl.getWellList()" name="" placeholder="Operator/Lease/Well name">
+    <div class="input-wrapper">  
+        <input class="search-box" ng-model="$ctrl.searchValue" ng-model-options="{ debounce: 800 }" type="text" ng-change="$ctrl.getWellList()" name="" placeholder="Operator/Lease/Well name">
+        <button class="close-icon" ng-click="$ctrl.clearSearch()">X</button>
     </div>
 
-    <div id="too-many-message" ng-if="$ctrl.message">
+    <div id="message" ng-if="$ctrl.message">
         {{$ctrl.message}}
     </div>
 
