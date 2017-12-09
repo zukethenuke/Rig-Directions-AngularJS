@@ -38332,10 +38332,12 @@ var _rdWellShow2 = __webpack_require__(40);
 var rdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFactory', _rdWellShow2.getWellFactory).component('rdWellShow', _rdWellShow.RdWellShowComponent).config(function ($routeProvider) {
     $routeProvider.when('/well/:wellId', {
         template: '<rd-well-show></rd-well-show>',
-        resolve: function resolve() {
-            return function () {
+        resolve: {
+            test: [function () {
+                //return function() {
                 console.log('hello from resolve');
-            };
+                //}
+            }]
             // console.log('hello from resolve', this.wellId);
             // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
             //     .then((response) => {
