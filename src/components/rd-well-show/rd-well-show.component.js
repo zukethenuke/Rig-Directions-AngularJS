@@ -3,10 +3,9 @@ import template from './rd-well-show.html';
 
 const RdWellShowComponent = {
     bindings:{
-        well: '<',
-        resolveWell: '<',
+        well: '<'
     },
-    controller: RdWellShowController,
+    // controller: RdWellShowController,
     template,
 };
 
