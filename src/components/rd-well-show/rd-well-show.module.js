@@ -10,18 +10,18 @@ const rdWellShowModule = angular
         $routeProvider
             .when('/well/:wellId', {
                 template: `<rd-well-show></rd-well-show>`,
-                controller: RdWellShowController,
+                // controller: RdWellShowController,
                 // controllerAs: 'vm',
                 resolve: {
                     well: function($http, $route) {
-                        return $http.get('http://localhost:3000/api/wells/' + $route.current.params.wellId)
-                        // $http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + $route.current.params.wellId)
+                        // return $http.get('http://localhost:3000/api/wells/' + $route.current.params.wellId)
+                        return $http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + $route.current.params.wellId)
                         .then((response) => {
-                                console.log('hello from resolve get', response);
-                                return response.data.well;
+                                console.log('hello from resolve get', response.data.well[0]);
+                                return response.data.well[0];
                             }, (response) => {
                                 console.log('resolve http error', response);
-                            })
+                            });
                     },
                 }
             })

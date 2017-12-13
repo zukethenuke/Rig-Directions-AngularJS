@@ -5,9 +5,8 @@ const RdWellShowComponent = {
     bindings:{
         well: '<'
     },
-    // controller: RdWellShowController,
+    controller: RdWellShowController,
     template,
 };
-
 
 export { RdWellShowComponent };
