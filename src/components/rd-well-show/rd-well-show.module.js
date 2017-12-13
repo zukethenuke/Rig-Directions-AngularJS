@@ -10,8 +10,6 @@ const rdWellShowModule = angular
         $routeProvider
             .when('/well/:wellId', {
                 template: `<rd-well-show></rd-well-show>`,
-                // controller: RdWellShowController,
-                // controllerAs: 'vm',
                 resolve: {
                     well: function($http, $route) {
                         // return $http.get('http://localhost:3000/api/wells/' + $route.current.params.wellId)

@@ -4,7 +4,6 @@ import template from './rd-well-show.html';
 const RdWellShowComponent = {
     bindings:{},
     controller: RdWellShowController,
-    controllerAs: '$ctrl',
     template,
 };
 
