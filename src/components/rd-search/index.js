@@ -1,0 +1,1 @@
+export { RdSearchModule } from './rd-search.module';

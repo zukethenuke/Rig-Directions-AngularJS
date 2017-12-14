@@ -1,9 +1,9 @@
-import { rdButtonComponent } from './rd-button.component';
+import { RdButtonComponent } from './rd-button.component';
 import './rd-button.css';
 
-const rdButtonModule = angular
+const RdButtonModule = angular
     .module('rdButtonModule', [])
-    .component('rdButton', rdButtonComponent)
+    .component('rdButton', RdButtonComponent)
     .name;
 
-export { rdButtonModule };
+export { RdButtonModule };

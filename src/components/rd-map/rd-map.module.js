@@ -1,7 +1,7 @@
 import { RdMapComponent } from './rd-map.component';
 import { RdMapController } from './rd-map.controller';
 
-const rdMapModule = angular
+const RdMapModule = angular
     .module('rdMapModule', [])
     .controller('RdMapController', RdMapController)
     .component('rdMap', RdMapComponent)
@@ -14,4 +14,4 @@ const rdMapModule = angular
     ])})    
     .name;
 
-export { rdMapModule };
+export { RdMapModule };

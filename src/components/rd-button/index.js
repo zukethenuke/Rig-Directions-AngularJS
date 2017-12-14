@@ -1,1 +1,1 @@
-export { rdButtonModule } from './rd-button.module';
+export { RdButtonModule } from './rd-button.module';

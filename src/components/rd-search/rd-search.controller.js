@@ -1,4 +1,4 @@
-class SearchController {
+class RdSearchController {
     constructor($http) {
         this.$http = $http;
     }
@@ -45,4 +45,4 @@ class SearchController {
     }
 }
 
-export { SearchController };
+export { RdSearchController };

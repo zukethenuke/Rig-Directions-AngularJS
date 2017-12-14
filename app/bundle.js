@@ -60,11 +60,499 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ 	return __webpack_require__(__webpack_require__.s = 4);
 /******/ })
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+module.exports = function(useSourceMap) {
+	var list = [];
+
+	// return the list of modules as css string
+	list.toString = function toString() {
+		return this.map(function (item) {
+			var content = cssWithMappingToString(item, useSourceMap);
+			if(item[2]) {
+				return "@media " + item[2] + "{" + content + "}";
+			} else {
+				return content;
+			}
+		}).join("");
+	};
+
+	// import a list of modules into the list
+	list.i = function(modules, mediaQuery) {
+		if(typeof modules === "string")
+			modules = [[null, modules, ""]];
+		var alreadyImportedModules = {};
+		for(var i = 0; i < this.length; i++) {
+			var id = this[i][0];
+			if(typeof id === "number")
+				alreadyImportedModules[id] = true;
+		}
+		for(i = 0; i < modules.length; i++) {
+			var item = modules[i];
+			// skip already imported module
+			// this implementation is not 100% perfect for weird media query combinations
+			//  when a module is imported multiple times with different media queries.
+			//  I hope this will never occur (Hey this way we have smaller bundles)
+			if(typeof item[0] !== "number" || !alreadyImportedModules[item[0]]) {
+				if(mediaQuery && !item[2]) {
+					item[2] = mediaQuery;
+				} else if(mediaQuery) {
+					item[2] = "(" + item[2] + ") and (" + mediaQuery + ")";
+				}
+				list.push(item);
+			}
+		}
+	};
+	return list;
+};
+
+function cssWithMappingToString(item, useSourceMap) {
+	var content = item[1] || '';
+	var cssMapping = item[3];
+	if (!cssMapping) {
+		return content;
+	}
+
+	if (useSourceMap && typeof btoa === 'function') {
+		var sourceMapping = toComment(cssMapping);
+		var sourceURLs = cssMapping.sources.map(function (source) {
+			return '/*# sourceURL=' + cssMapping.sourceRoot + source + ' */'
+		});
+
+		return [content].concat(sourceURLs).concat([sourceMapping]).join('\n');
+	}
+
+	return [content].join('\n');
+}
+
+// Adapted from convert-source-map (MIT)
+function toComment(sourceMap) {
+	// eslint-disable-next-line no-undef
+	var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap))));
+	var data = 'sourceMappingURL=data:application/json;charset=utf-8;base64,' + base64;
+
+	return '/*# ' + data + ' */';
+}
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+/*
+	MIT License http://www.opensource.org/licenses/mit-license.php
+	Author Tobias Koppers @sokra
+*/
+
+var stylesInDom = {};
+
+var	memoize = function (fn) {
+	var memo;
+
+	return function () {
+		if (typeof memo === "undefined") memo = fn.apply(this, arguments);
+		return memo;
+	};
+};
+
+var isOldIE = memoize(function () {
+	// Test for IE <= 9 as proposed by Browserhacks
+	// @see http://browserhacks.com/#hack-e71d8692f65334173fee715c222cb805
+	// Tests for existence of standard globals is to allow style-loader
+	// to operate correctly into non-standard environments
+	// @see https://github.com/webpack-contrib/style-loader/issues/177
+	return window && document && document.all && !window.atob;
+});
+
+var getElement = (function (fn) {
+	var memo = {};
+
+	return function(selector) {
+		if (typeof memo[selector] === "undefined") {
+			var styleTarget = fn.call(this, selector);
+			// Special case to return head of iframe instead of iframe itself
+			if (styleTarget instanceof window.HTMLIFrameElement) {
+				try {
+					// This will throw an exception if access to iframe is blocked
+					// due to cross-origin restrictions
+					styleTarget = styleTarget.contentDocument.head;
+				} catch(e) {
+					styleTarget = null;
+				}
+			}
+			memo[selector] = styleTarget;
+		}
+		return memo[selector]
+	};
+})(function (target) {
+	return document.querySelector(target)
+});
+
+var singleton = null;
+var	singletonCounter = 0;
+var	stylesInsertedAtTop = [];
+
+var	fixUrls = __webpack_require__(19);
+
+module.exports = function(list, options) {
+	if (typeof DEBUG !== "undefined" && DEBUG) {
+		if (typeof document !== "object") throw new Error("The style-loader cannot be used in a non-browser environment");
+	}
+
+	options = options || {};
+
+	options.attrs = typeof options.attrs === "object" ? options.attrs : {};
+
+	// Force single-tag solution on IE6-9, which has a hard limit on the # of <style>
+	// tags it will allow on a page
+	if (!options.singleton) options.singleton = isOldIE();
+
+	// By default, add <style> tags to the <head> element
+	if (!options.insertInto) options.insertInto = "head";
+
+	// By default, add <style> tags to the bottom of the target
+	if (!options.insertAt) options.insertAt = "bottom";
+
+	var styles = listToStyles(list, options);
+
+	addStylesToDom(styles, options);
+
+	return function update (newList) {
+		var mayRemove = [];
+
+		for (var i = 0; i < styles.length; i++) {
+			var item = styles[i];
+			var domStyle = stylesInDom[item.id];
+
+			domStyle.refs--;
+			mayRemove.push(domStyle);
+		}
+
+		if(newList) {
+			var newStyles = listToStyles(newList, options);
+			addStylesToDom(newStyles, options);
+		}
+
+		for (var i = 0; i < mayRemove.length; i++) {
+			var domStyle = mayRemove[i];
+
+			if(domStyle.refs === 0) {
+				for (var j = 0; j < domStyle.parts.length; j++) domStyle.parts[j]();
+
+				delete stylesInDom[domStyle.id];
+			}
+		}
+	};
+};
+
+function addStylesToDom (styles, options) {
+	for (var i = 0; i < styles.length; i++) {
+		var item = styles[i];
+		var domStyle = stylesInDom[item.id];
+
+		if(domStyle) {
+			domStyle.refs++;
+
+			for(var j = 0; j < domStyle.parts.length; j++) {
+				domStyle.parts[j](item.parts[j]);
+			}
+
+			for(; j < item.parts.length; j++) {
+				domStyle.parts.push(addStyle(item.parts[j], options));
+			}
+		} else {
+			var parts = [];
+
+			for(var j = 0; j < item.parts.length; j++) {
+				parts.push(addStyle(item.parts[j], options));
+			}
+
+			stylesInDom[item.id] = {id: item.id, refs: 1, parts: parts};
+		}
+	}
+}
+
+function listToStyles (list, options) {
+	var styles = [];
+	var newStyles = {};
+
+	for (var i = 0; i < list.length; i++) {
+		var item = list[i];
+		var id = options.base ? item[0] + options.base : item[0];
+		var css = item[1];
+		var media = item[2];
+		var sourceMap = item[3];
+		var part = {css: css, media: media, sourceMap: sourceMap};
+
+		if(!newStyles[id]) styles.push(newStyles[id] = {id: id, parts: [part]});
+		else newStyles[id].parts.push(part);
+	}
+
+	return styles;
+}
+
+function insertStyleElement (options, style) {
+	var target = getElement(options.insertInto)
+
+	if (!target) {
+		throw new Error("Couldn't find a style target. This probably means that the value for the 'insertInto' parameter is invalid.");
+	}
+
+	var lastStyleElementInsertedAtTop = stylesInsertedAtTop[stylesInsertedAtTop.length - 1];
+
+	if (options.insertAt === "top") {
+		if (!lastStyleElementInsertedAtTop) {
+			target.insertBefore(style, target.firstChild);
+		} else if (lastStyleElementInsertedAtTop.nextSibling) {
+			target.insertBefore(style, lastStyleElementInsertedAtTop.nextSibling);
+		} else {
+			target.appendChild(style);
+		}
+		stylesInsertedAtTop.push(style);
+	} else if (options.insertAt === "bottom") {
+		target.appendChild(style);
+	} else if (typeof options.insertAt === "object" && options.insertAt.before) {
+		var nextSibling = getElement(options.insertInto + " " + options.insertAt.before);
+		target.insertBefore(style, nextSibling);
+	} else {
+		throw new Error("[Style Loader]\n\n Invalid value for parameter 'insertAt' ('options.insertAt') found.\n Must be 'top', 'bottom', or Object.\n (https://github.com/webpack-contrib/style-loader#insertat)\n");
+	}
+}
+
+function removeStyleElement (style) {
+	if (style.parentNode === null) return false;
+	style.parentNode.removeChild(style);
+
+	var idx = stylesInsertedAtTop.indexOf(style);
+	if(idx >= 0) {
+		stylesInsertedAtTop.splice(idx, 1);
+	}
+}
+
+function createStyleElement (options) {
+	var style = document.createElement("style");
+
+	options.attrs.type = "text/css";
+
+	addAttrs(style, options.attrs);
+	insertStyleElement(options, style);
+
+	return style;
+}
+
+function createLinkElement (options) {
+	var link = document.createElement("link");
+
+	options.attrs.type = "text/css";
+	options.attrs.rel = "stylesheet";
+
+	addAttrs(link, options.attrs);
+	insertStyleElement(options, link);
+
+	return link;
+}
+
+function addAttrs (el, attrs) {
+	Object.keys(attrs).forEach(function (key) {
+		el.setAttribute(key, attrs[key]);
+	});
+}
+
+function addStyle (obj, options) {
+	var style, update, remove, result;
+
+	// If a transform function was defined, run it on the css
+	if (options.transform && obj.css) {
+	    result = options.transform(obj.css);
+
+	    if (result) {
+	    	// If transform returns a value, use that instead of the original css.
+	    	// This allows running runtime transformations on the css.
+	    	obj.css = result;
+	    } else {
+	    	// If the transform function returns a falsy value, don't add this css.
+	    	// This allows conditional loading of css
+	    	return function() {
+	    		// noop
+	    	};
+	    }
+	}
+
+	if (options.singleton) {
+		var styleIndex = singletonCounter++;
+
+		style = singleton || (singleton = createStyleElement(options));
+
+		update = applyToSingletonTag.bind(null, style, styleIndex, false);
+		remove = applyToSingletonTag.bind(null, style, styleIndex, true);
+
+	} else if (
+		obj.sourceMap &&
+		typeof URL === "function" &&
+		typeof URL.createObjectURL === "function" &&
+		typeof URL.revokeObjectURL === "function" &&
+		typeof Blob === "function" &&
+		typeof btoa === "function"
+	) {
+		style = createLinkElement(options);
+		update = updateLink.bind(null, style, options);
+		remove = function () {
+			removeStyleElement(style);
+
+			if(style.href) URL.revokeObjectURL(style.href);
+		};
+	} else {
+		style = createStyleElement(options);
+		update = applyToTag.bind(null, style);
+		remove = function () {
+			removeStyleElement(style);
+		};
+	}
+
+	update(obj);
+
+	return function updateStyle (newObj) {
+		if (newObj) {
+			if (
+				newObj.css === obj.css &&
+				newObj.media === obj.media &&
+				newObj.sourceMap === obj.sourceMap
+			) {
+				return;
+			}
+
+			update(obj = newObj);
+		} else {
+			remove();
+		}
+	};
+}
+
+var replaceText = (function () {
+	var textStore = [];
+
+	return function (index, replacement) {
+		textStore[index] = replacement;
+
+		return textStore.filter(Boolean).join('\n');
+	};
+})();
+
+function applyToSingletonTag (style, index, remove, obj) {
+	var css = remove ? "" : obj.css;
+
+	if (style.styleSheet) {
+		style.styleSheet.cssText = replaceText(index, css);
+	} else {
+		var cssNode = document.createTextNode(css);
+		var childNodes = style.childNodes;
+
+		if (childNodes[index]) style.removeChild(childNodes[index]);
+
+		if (childNodes.length) {
+			style.insertBefore(cssNode, childNodes[index]);
+		} else {
+			style.appendChild(cssNode);
+		}
+	}
+}
+
+function applyToTag (style, obj) {
+	var css = obj.css;
+	var media = obj.media;
+
+	if(media) {
+		style.setAttribute("media", media)
+	}
+
+	if(style.styleSheet) {
+		style.styleSheet.cssText = css;
+	} else {
+		while(style.firstChild) {
+			style.removeChild(style.firstChild);
+		}
+
+		style.appendChild(document.createTextNode(css));
+	}
+}
+
+function updateLink (link, options, obj) {
+	var css = obj.css;
+	var sourceMap = obj.sourceMap;
+
+	/*
+		If convertToAbsoluteUrls isn't defined, but sourcemaps are enabled
+		and there is no publicPath defined then lets turn convertToAbsoluteUrls
+		on by default.  Otherwise default to the convertToAbsoluteUrls option
+		directly
+	*/
+	var autoFixUrls = options.convertToAbsoluteUrls === undefined && sourceMap;
+
+	if (options.convertToAbsoluteUrls || autoFixUrls) {
+		css = fixUrls(css);
+	}
+
+	if (sourceMap) {
+		// http://stackoverflow.com/a/26603875
+		css += "\n/*# sourceMappingURL=data:application/json;base64," + btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))) + " */";
+	}
+
+	var blob = new Blob([css], { type: "text/css" });
+
+	var oldSrc = link.href;
+
+	link.href = URL.createObjectURL(blob);
+
+	if(oldSrc) URL.revokeObjectURL(oldSrc);
+}
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var RdWellShowController = function () {
+    function RdWellShowController($scope) {
+        _classCallCheck(this, RdWellShowController);
+
+        this.well = $scope.$parent.$resolve.well;
+        this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + this.well.latitude + "," + this.well.longitude;
+        this.mapIsReady = true;
+    }
+
+    _createClass(RdWellShowController, [{
+        key: "$onInit",
+        value: function $onInit() {}
+    }]);
+
+    return RdWellShowController;
+}();
+
+exports.RdWellShowController = RdWellShowController;
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -113,16 +601,16 @@ var RdMapController = function () {
 exports.RdMapController = RdMapController;
 
 /***/ }),
-/* 1 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _directionsApp = __webpack_require__(2);
+var _directionsApp = __webpack_require__(5);
 
 /***/ }),
-/* 2 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -133,46 +621,46 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.directionsAppModule = undefined;
 
-var _angular = __webpack_require__(3);
+var _angular = __webpack_require__(6);
 
 var _angular2 = _interopRequireDefault(_angular);
 
-var _angularRoute = __webpack_require__(5);
+var _angularRoute = __webpack_require__(8);
 
 var _angularRoute2 = _interopRequireDefault(_angularRoute);
 
-var _angularFilter = __webpack_require__(7);
+var _angularFilter = __webpack_require__(10);
 
 var _angularFilter2 = _interopRequireDefault(_angularFilter);
 
-var _search = __webpack_require__(9);
+var _rdSearch = __webpack_require__(12);
 
-var _home = __webpack_require__(14);
+var _rdHome = __webpack_require__(20);
 
-var _rdButton = __webpack_require__(29);
+var _rdButton = __webpack_require__(35);
 
-var _rdWellShow = __webpack_require__(35);
+var _rdWellShow = __webpack_require__(41);
 
-var _rdMap = __webpack_require__(41);
+var _rdMap = __webpack_require__(48);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var directionsAppModule = _angular2.default.module('directionsAppModule', ["ngRoute", _angularFilter2.default, _search.searchModule, _home.homeModule, _rdButton.rdButtonModule, _rdWellShow.rdWellShowModule, _rdMap.rdMapModule]).config(function ($routeProvider) {
-    $routeProvider.when('/', { template: '<home-component></home-component>' }).when('/search', { template: '<search-component></search-component>' }).when('/near', { templateUrl: 'src/views/near.tpl.html' });
+var directionsAppModule = _angular2.default.module('directionsAppModule', ["ngRoute", _angularFilter2.default, _rdSearch.RdSearchModule, _rdHome.RdHomeModule, _rdButton.RdButtonModule, _rdWellShow.RdWellShowModule, _rdMap.RdMapModule]).config(function ($routeProvider) {
+    $routeProvider.when('/', { template: '<rd-home></rd-home>' }).when('/search', { template: '<rd-search></rd-search>' }).when('/near', { templateUrl: 'src/views/near.tpl.html' });
 });
 
 exports.directionsAppModule = directionsAppModule;
 
 /***/ }),
-/* 3 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(4);
+__webpack_require__(7);
 module.exports = angular;
 
 
 /***/ }),
-/* 4 */
+/* 7 */
 /***/ (function(module, exports) {
 
 /**
@@ -34066,15 +34554,15 @@ $provide.value("$locale", {
 !window.angular.$$csp().noInlineStyle && window.angular.element(document.head).prepend('<style type="text/css">@charset "UTF-8";[ng\\:cloak],[ng-cloak],[data-ng-cloak],[x-ng-cloak],.ng-cloak,.x-ng-cloak,.ng-hide:not(.ng-hide-animate){display:none !important;}ng\\:form{display:block;}.ng-animate-shim{visibility:hidden;}.ng-anchor{position:absolute;}</style>');
 
 /***/ }),
-/* 5 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(6);
+__webpack_require__(9);
 module.exports = 'ngRoute';
 
 
 /***/ }),
-/* 6 */
+/* 9 */
 /***/ (function(module, exports) {
 
 /**
@@ -35309,15 +35797,15 @@ function ngViewFillContentFactory($compile, $controller, $route) {
 
 
 /***/ }),
-/* 7 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
-__webpack_require__(8);
+__webpack_require__(11);
 module.exports = 'angular.filter';
 
 
 /***/ }),
-/* 8 */
+/* 11 */
 /***/ (function(module, exports) {
 
 /**
@@ -37689,7 +38177,7 @@ angular.module('angular.filter', [
 })( window, window.angular );
 
 /***/ }),
-/* 9 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37699,17 +38187,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _search = __webpack_require__(10);
+var _rdSearch = __webpack_require__(13);
 
-Object.defineProperty(exports, 'searchModule', {
+Object.defineProperty(exports, 'RdSearchModule', {
   enumerable: true,
   get: function get() {
-    return _search.searchModule;
+    return _rdSearch.RdSearchModule;
   }
 });
 
 /***/ }),
-/* 10 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37718,20 +38206,18 @@ Object.defineProperty(exports, 'searchModule', {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.searchModule = undefined;
+exports.RdSearchModule = undefined;
 
-var _search = __webpack_require__(11);
+var _rdSearch = __webpack_require__(14);
 
-// import { fuzzyFilter } from './search.filter';
+__webpack_require__(17);
 
-var searchModule = angular.module('searchModule', []).component('searchComponent', _search.searchComponent)
-// .filter('fuzzyFilter', fuzzyFilter)
-.name;
+var RdSearchModule = angular.module('RdSearchModule', []).component('rdSearch', _rdSearch.RdSearchComponent).name;
 
-exports.searchModule = searchModule;
+exports.RdSearchModule = RdSearchModule;
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37740,26 +38226,26 @@ exports.searchModule = searchModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.searchComponent = undefined;
+exports.RdSearchComponent = undefined;
 
-var _search = __webpack_require__(12);
+var _rdSearch = __webpack_require__(15);
 
-var _search2 = __webpack_require__(13);
+var _rdSearch2 = __webpack_require__(16);
 
-var _search3 = _interopRequireDefault(_search2);
+var _rdSearch3 = _interopRequireDefault(_rdSearch2);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var searchComponent = {
+var RdSearchComponent = {
     bindings: {},
-    controller: _search.SearchController,
-    template: _search3.default
+    controller: _rdSearch.RdSearchController,
+    template: _rdSearch3.default
 };
 
-exports.searchComponent = searchComponent;
+exports.RdSearchComponent = RdSearchComponent;
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -37773,14 +38259,14 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var SearchController = function () {
-    function SearchController($http) {
-        _classCallCheck(this, SearchController);
+var RdSearchController = function () {
+    function RdSearchController($http) {
+        _classCallCheck(this, RdSearchController);
 
         this.$http = $http;
     }
 
-    _createClass(SearchController, [{
+    _createClass(RdSearchController, [{
         key: "$onInit",
         value: function $onInit() {
             if (localStorage.getItem("searchValue")) {
@@ -37834,161 +38320,156 @@ var SearchController = function () {
         }
     }]);
 
-    return SearchController;
+    return RdSearchController;
 }();
 
-exports.SearchController = SearchController;
-
-/***/ }),
-/* 13 */
-/***/ (function(module, exports) {
-
-module.exports = "<style>\n    body {\n        background: #f2f2f2;\n    }\n\n    .button {\n        background: #FFFFFF;\n        margin-left: 20px;\n        margin-top: 10px;\n        width: 100px;\n        border: 1px solid lightgrey;\n        border-radius: 8px;\n        font-size: 35px;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n        box-shadow: 2px 3px 5px #888888;\n    }\n\n    #search-container {\n        display: grid;\n        grid-template-rows: 80px 100px 1fr;\n        grid-gap: 1em;\n        grid-template-areas: \"back\"\n                             \"input\"\n                             \"results\"; \n    }\n\n    .input-wrapper {  /* needed to create a div for full width input field */\n        grid-area: input;\n        display: grid;\n        grid-template-columns: 6fr 1fr;\n        grid-template-areas: \"s s x\";\n        margin-right: 20px;\n        padding: 20px;\n    }\n\n    .search-box {\n        font-size: 35px;\n        padding: 20px 0 20px 20px;\n        background: #FFFFFF;\n        width: 100%;\n        box-shadow: 2px 3px 5px #888888;\n        border: 1px solid lightgrey;\n        align-items: stretch;\n    }\n\n    .close-icon {\n        box-shadow: 2px 3px 5px #888888;\n        border: 1px solid lightgrey;\n        border-left-color: transparent;\n    }\n\n    .well-list-item {\n        border: 1px solid lightgrey;\n        border-radius: 8px;\n        line-height: 10px;\n        margin: 30px;\n        padding: 10px;\n        background: white;\n        box-shadow: 2px 3px 5px #888888;\n        white-space: nowrap;\n        font-size: 35px;\n        text-overflow: ellipsis;\n    }\n    a {\n        text-decoration: none;\n    }\n\n    #message {\n        background: #e57373;\n        color: #FFFFFF;\n        font-size: 20px;\n        padding: 40px;\n        margin: 20px 100px;\n        text-align: center;\n        border-radius: 8px;\n        box-shadow: 2px 3px 5px #888888;\n    }\n</style>\n\n<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well name\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
-
-/***/ }),
-/* 14 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _home = __webpack_require__(15);
-
-Object.defineProperty(exports, 'homeModule', {
-  enumerable: true,
-  get: function get() {
-    return _home.homeModule;
-  }
-});
-
-/***/ }),
-/* 15 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.homeModule = undefined;
-
-var _home = __webpack_require__(16);
-
-var _rdList = __webpack_require__(19);
-
-var _rdListItem = __webpack_require__(24);
-
-var homeModule = angular.module('homeModule', [_rdList.rdListModule, _rdListItem.rdListItemModule]).component('homeComponent', _home.homeComponent).name;
-
-exports.homeModule = homeModule;
+exports.RdSearchController = RdSearchController;
 
 /***/ }),
 /* 16 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.homeComponent = undefined;
-
-var _home = __webpack_require__(17);
-
-var _home2 = __webpack_require__(18);
-
-var _home3 = _interopRequireDefault(_home2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var homeComponent = {
-    bindings: {
-        initialData: '<'
-    },
-    controller: _home.HomeController,
-    template: _home3.default
-};
-
-exports.homeComponent = homeComponent;
+module.exports = "<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well name\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
 
 /***/ }),
 /* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
-"use strict";
+// style-loader: Adds some css to the DOM by adding a <style> tag
 
+// load the styles
+var content = __webpack_require__(18);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
 
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var HomeController = function () {
-    function HomeController($http) {
-        _classCallCheck(this, HomeController);
-
-        this.$http = $http;
-    }
-
-    _createClass(HomeController, [{
-        key: '$onInit',
-        value: function $onInit() {
-            this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/234'); //wake up heroku api server
-            // this.initialData = this.getInitialData();
-        }
-    }, {
-        key: 'getInitialData',
-        value: function getInitialData() {
-            // const initialData = this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/startup')
-            //     .then(function(response) {
-            //         console.log('success', response);
-            //         return response;
-            //     }, function(response) {
-            //         console.log('error', response);
-            //         return response;
-            //     })
-        }
-    }]);
-
-    return HomeController;
-}();
-
-exports.HomeController = HomeController;
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./rd-search.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./rd-search.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
 
 /***/ }),
 /* 18 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = "<style>\n    body {\n        background-color: #f2f2f2;\n    }\n    \n    .home-screen {\n        display: grid;\n        grid-template-rows: 1fr 1fr;\n        grid-gap: 2em;\n        margin: 5%;\n    }\n    \n</style>\n\n<div class=\"home-screen\">\n    <rd-button button-url=\"search\" button-icon=\"\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
+exports = module.exports = __webpack_require__(0)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "body {\n    background: #f2f2f2;\n}\n\n.button {\n    background: #FFFFFF;\n    margin-left: 20px;\n    margin-top: 10px;\n    width: 100px;\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    font-size: 35px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 2px 3px 5px #888888;\n}\n\n#search-container {\n    display: grid;\n    grid-template-rows: 80px 100px 1fr;\n    grid-gap: 1em;\n    grid-template-areas: \"back\" \"input\" \"results\";\n}\n\n.input-wrapper {\n    /* needed to create a div for full width input field */\n    grid-area: input;\n    display: grid;\n    grid-template-columns: 6fr 1fr;\n    grid-template-areas: \"s s x\";\n    margin-right: 20px;\n    padding: 20px;\n}\n\n.search-box {\n    font-size: 35px;\n    padding: 20px 0 20px 20px;\n    background: #FFFFFF;\n    width: 100%;\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    align-items: stretch;\n}\n\n.close-icon {\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    border-left-color: transparent;\n}\n\n.well-list-item {\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    line-height: 10px;\n    margin: 30px;\n    padding: 10px;\n    background: white;\n    box-shadow: 2px 3px 5px #888888;\n    white-space: nowrap;\n    font-size: 35px;\n    text-overflow: ellipsis;\n}\n\na {\n    text-decoration: none;\n}\n\n#message {\n    background: #e57373;\n    color: #FFFFFF;\n    font-size: 20px;\n    padding: 40px;\n    margin: 20px 100px;\n    text-align: center;\n    border-radius: 8px;\n    box-shadow: 2px 3px 5px #888888;\n}", ""]);
+
+// exports
+
 
 /***/ }),
 /* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
+/***/ (function(module, exports) {
 
 
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
+/**
+ * When source maps are enabled, `style-loader` uses a link element with a data-uri to
+ * embed the css on the page. This breaks all relative urls because now they are relative to a
+ * bundle instead of the current page.
+ *
+ * One solution is to only use full urls, but that may be impossible.
+ *
+ * Instead, this function "fixes" the relative urls to be absolute according to the current page location.
+ *
+ * A rudimentary test suite is located at `test/fixUrls.js` and can be run via the `npm test` command.
+ *
+ */
 
-var _rdList = __webpack_require__(20);
+module.exports = function (css) {
+  // get current location
+  var location = typeof window !== "undefined" && window.location;
 
-Object.defineProperty(exports, 'rdListModule', {
-  enumerable: true,
-  get: function get() {
-    return _rdList.rdListModule;
+  if (!location) {
+    throw new Error("fixUrls requires window.location");
   }
-});
+
+	// blank or null?
+	if (!css || typeof css !== "string") {
+	  return css;
+  }
+
+  var baseUrl = location.protocol + "//" + location.host;
+  var currentDir = baseUrl + location.pathname.replace(/\/[^\/]*$/, "/");
+
+	// convert each url(...)
+	/*
+	This regular expression is just a way to recursively match brackets within
+	a string.
+
+	 /url\s*\(  = Match on the word "url" with any whitespace after it and then a parens
+	   (  = Start a capturing group
+	     (?:  = Start a non-capturing group
+	         [^)(]  = Match anything that isn't a parentheses
+	         |  = OR
+	         \(  = Match a start parentheses
+	             (?:  = Start another non-capturing groups
+	                 [^)(]+  = Match anything that isn't a parentheses
+	                 |  = OR
+	                 \(  = Match a start parentheses
+	                     [^)(]*  = Match anything that isn't a parentheses
+	                 \)  = Match a end parentheses
+	             )  = End Group
+              *\) = Match anything and then a close parens
+          )  = Close non-capturing group
+          *  = Match anything
+       )  = Close capturing group
+	 \)  = Match a close parens
+
+	 /gi  = Get all matches, not the first.  Be case insensitive.
+	 */
+	var fixedCss = css.replace(/url\s*\(((?:[^)(]|\((?:[^)(]+|\([^)(]*\))*\))*)\)/gi, function(fullMatch, origUrl) {
+		// strip quotes (if they exist)
+		var unquotedOrigUrl = origUrl
+			.trim()
+			.replace(/^"(.*)"$/, function(o, $1){ return $1; })
+			.replace(/^'(.*)'$/, function(o, $1){ return $1; });
+
+		// already a full url? no change
+		if (/^(#|data:|http:\/\/|https:\/\/|file:\/\/\/)/i.test(unquotedOrigUrl)) {
+		  return fullMatch;
+		}
+
+		// convert the url to a full url
+		var newUrl;
+
+		if (unquotedOrigUrl.indexOf("//") === 0) {
+		  	//TODO: should we add protocol?
+			newUrl = unquotedOrigUrl;
+		} else if (unquotedOrigUrl.indexOf("/") === 0) {
+			// path should be relative to the base url
+			newUrl = baseUrl + unquotedOrigUrl; // already starts with '/'
+		} else {
+			// path should be relative to current directory
+			newUrl = currentDir + unquotedOrigUrl.replace(/^\.\//, ""); // Strip leading './'
+		}
+
+		// send back the fixed url(...)
+		return "url(" + JSON.stringify(newUrl) + ")";
+	});
+
+	// send back the fixed css
+	return fixedCss;
+};
+
 
 /***/ }),
 /* 20 */
@@ -37998,15 +38479,17 @@ Object.defineProperty(exports, 'rdListModule', {
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
-exports.rdListModule = undefined;
 
-var _rdList = __webpack_require__(21);
+var _rdHome = __webpack_require__(21);
 
-var rdListModule = angular.module('rdListModule', []).component('rdList', _rdList.RdListComponent).name;
-
-exports.rdListModule = rdListModule;
+Object.defineProperty(exports, 'RdHomeModule', {
+  enumerable: true,
+  get: function get() {
+    return _rdHome.RdHomeModule;
+  }
+});
 
 /***/ }),
 /* 21 */
@@ -38018,32 +38501,47 @@ exports.rdListModule = rdListModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.RdListComponent = undefined;
+exports.RdHomeModule = undefined;
 
-var _rdList = __webpack_require__(22);
+var _rdHome = __webpack_require__(22);
 
-var _rdList2 = _interopRequireDefault(_rdList);
+var _rdList = __webpack_require__(25);
 
-var _rdListController = __webpack_require__(23);
+var _rdListItem = __webpack_require__(29);
 
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+__webpack_require__(33);
 
-var RdListComponent = {
-    bindings: {
-        list: '<'
-    },
-    controller: _rdListController.RdListController,
-    template: _rdList2.default,
-    transclude: true
-};
+var RdHomeModule = angular.module('RdHomeModule', [_rdList.RdListModule, _rdListItem.RdListItemModule]).component('rdHome', _rdHome.RdHomeComponent).name;
 
-exports.RdListComponent = RdListComponent;
+exports.RdHomeModule = RdHomeModule;
 
 /***/ }),
 /* 22 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = "rd list template\n<span ng-transclude></span>";
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.RdHomeComponent = undefined;
+
+var _rdHome = __webpack_require__(23);
+
+var _rdHome2 = __webpack_require__(24);
+
+var _rdHome3 = _interopRequireDefault(_rdHome2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var RdHomeComponent = {
+    bindings: {},
+    controller: _rdHome.RdHomeController,
+    template: _rdHome3.default
+};
+
+exports.RdHomeComponent = RdHomeComponent;
 
 /***/ }),
 /* 23 */
@@ -38060,40 +38558,31 @@ var _createClass = function () { function defineProperties(target, props) { for 
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var RdListController = function () {
-    function RdListController() {
-        _classCallCheck(this, RdListController);
+var RdHomeController = function () {
+    function RdHomeController($http) {
+        _classCallCheck(this, RdHomeController);
+
+        this.$http = $http;
     }
 
-    _createClass(RdListController, [{
-        key: "$onInit",
-        value: function $onInit() {}
+    _createClass(RdHomeController, [{
+        key: '$onInit',
+        value: function $onInit() {
+            // wake up heroku api server
+            this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/234');
+        }
     }]);
 
-    return RdListController;
+    return RdHomeController;
 }();
 
-exports.RdListController = RdListController;
+exports.RdHomeController = RdHomeController;
 
 /***/ }),
 /* 24 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-  value: true
-});
-
-var _rdListItem = __webpack_require__(25);
-
-Object.defineProperty(exports, 'rdListItemModule', {
-  enumerable: true,
-  get: function get() {
-    return _rdListItem.rdListItemModule;
-  }
-});
+module.exports = "<div class=\"home-screen\">\n    <rd-button button-url=\"search\" button-icon=\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
 
 /***/ }),
 /* 25 */
@@ -38103,15 +38592,17 @@ Object.defineProperty(exports, 'rdListItemModule', {
 
 
 Object.defineProperty(exports, "__esModule", {
-    value: true
+  value: true
 });
-exports.rdListItemModule = undefined;
 
-var _rdListItem = __webpack_require__(26);
+var _rdList = __webpack_require__(26);
 
-var rdListItemModule = angular.module('rdListItemModule', []).component('rdListItem', _rdListItem.RdListItemComponent).name;
-
-exports.rdListItemModule = rdListItemModule;
+Object.defineProperty(exports, 'RdListModule', {
+  enumerable: true,
+  get: function get() {
+    return _rdList.RdListModule;
+  }
+});
 
 /***/ }),
 /* 26 */
@@ -38123,25 +38614,13 @@ exports.rdListItemModule = rdListItemModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.RdListItemComponent = undefined;
+exports.RdListModule = undefined;
 
-var _rdListItem = __webpack_require__(27);
+var _rdList = __webpack_require__(27);
 
-var _rdListItem2 = __webpack_require__(28);
+var RdListModule = angular.module('RdListModule', []).component('rdList', _rdList.RdListComponent).name;
 
-var _rdListItem3 = _interopRequireDefault(_rdListItem2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-var RdListItemComponent = {
-    bindings: {
-        well: '<'
-    },
-    controller: _rdListItem.RdListItemController,
-    template: _rdListItem3.default
-};
-
-exports.RdListItemComponent = RdListItemComponent;
+exports.RdListModule = RdListModule;
 
 /***/ }),
 /* 27 */
@@ -38153,31 +38632,29 @@ exports.RdListItemComponent = RdListItemComponent;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.RdListComponent = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _rdList = __webpack_require__(28);
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _rdList2 = _interopRequireDefault(_rdList);
 
-var RdListItemController = function () {
-    function RdListItemController() {
-        _classCallCheck(this, RdListItemController);
-    }
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-    _createClass(RdListItemController, [{
-        key: "$onInit",
-        value: function $onInit() {}
-    }]);
+var RdListComponent = {
+    bindings: {
+        list: '<'
+    },
+    template: _rdList2.default,
+    transclude: true
+};
 
-    return RdListItemController;
-}();
-
-exports.RdListItemController = RdListItemController;
+exports.RdListComponent = RdListComponent;
 
 /***/ }),
 /* 28 */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"well-list-item\" >\n    <a ng-href=\"/#!/well/{{$ctrl.well.id}}\">\n        <p>Operator: {{$ctrl.well.current_operator}}</p>\n        <p>Well Name: {{$ctrl.well.current_well_name}}</p>\n        <p>API #: {{$ctrl.well.api_no}}</p>\n    </a>\n</div>\n";
+module.exports = "rd list template\n<span ng-transclude></span>";
 
 /***/ }),
 /* 29 */
@@ -38190,12 +38667,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdButton = __webpack_require__(30);
+var _rdListItem = __webpack_require__(30);
 
-Object.defineProperty(exports, 'rdButtonModule', {
+Object.defineProperty(exports, 'RdListItemModule', {
   enumerable: true,
   get: function get() {
-    return _rdButton.rdButtonModule;
+    return _rdListItem.RdListItemModule;
   }
 });
 
@@ -38209,15 +38686,13 @@ Object.defineProperty(exports, 'rdButtonModule', {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.rdButtonModule = undefined;
+exports.RdListItemModule = undefined;
 
-var _rdButton = __webpack_require__(31);
+var _rdListItem = __webpack_require__(31);
 
-__webpack_require__(34);
+var RdListItemModule = angular.module('rdListItemModule', []).component('rdListItem', _rdListItem.RdListItemComponent).name;
 
-var rdButtonModule = angular.module('rdButtonModule', []).component('rdButton', _rdButton.rdButtonComponent).name;
-
-exports.rdButtonModule = rdButtonModule;
+exports.RdListItemModule = RdListItemModule;
 
 /***/ }),
 /* 31 */
@@ -38229,68 +38704,72 @@ exports.rdButtonModule = rdButtonModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.rdButtonComponent = undefined;
+exports.RdListItemComponent = undefined;
 
-var _rdButton = __webpack_require__(32);
+var _rdListItem = __webpack_require__(32);
 
-var _rdButton2 = __webpack_require__(33);
-
-var _rdButton3 = _interopRequireDefault(_rdButton2);
+var _rdListItem2 = _interopRequireDefault(_rdListItem);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var rdButtonComponent = {
+var RdListItemComponent = {
     bindings: {
-        buttonUrl: '@',
-        buttonIcon: '@'
+        well: '<'
     },
-    controller: _rdButton.RdButtonController,
-    template: _rdButton3.default,
-    transclude: true
+    template: _rdListItem2.default
 };
 
-exports.rdButtonComponent = rdButtonComponent;
+exports.RdListItemComponent = RdListItemComponent;
 
 /***/ }),
 /* 32 */
-/***/ (function(module, exports, __webpack_require__) {
+/***/ (function(module, exports) {
 
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var RdButtonController = function () {
-    function RdButtonController() {
-        _classCallCheck(this, RdButtonController);
-    }
-
-    _createClass(RdButtonController, [{
-        key: "$onInit",
-        value: function $onInit() {}
-    }]);
-
-    return RdButtonController;
-}();
-
-exports.RdButtonController = RdButtonController;
+module.exports = "<div class=\"well-list-item\" >\n    <a ng-href=\"/#!/well/{{$ctrl.well.id}}\">\n        <p>Operator: {{$ctrl.well.current_operator}}</p>\n        <p>Well Name: {{$ctrl.well.current_well_name}}</p>\n        <p>API #: {{$ctrl.well.api_no}}</p>\n    </a>\n</div>\n";
 
 /***/ }),
 /* 33 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = "<style>\n    .rd-button {\n        background-color: #FFFFFF;\n        border: 2px solid lightblue;\n        border-radius: 25px;\n        height: 45vh;\n        display: flex;\n        align-items: center;\n        justify-content: center;\n    }   \n</style>\n\n<a ng-href=\"/#!/{{$ctrl.buttonUrl}}\">\n    <div class=\"rd-button\">\n        <i class=\"fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary\"></i>\n        <h3 class=\"home-heading\"><span ng-transclude></span></h3>\n    </div>\n</a>    ";
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(34);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./rd-home.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./rd-home.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
 
 /***/ }),
 /* 34 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
+exports = module.exports = __webpack_require__(0)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, "body {\n    background-color: #f2f2f2;\n}\n\n.home-screen {\n    display: grid;\n    grid-template-rows: 1fr 1fr;\n    grid-gap: 2em;\n    margin: 5%;\n}\n", ""]);
+
+// exports
 
 
 /***/ }),
@@ -38304,12 +38783,12 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdWellShow = __webpack_require__(36);
+var _rdButton = __webpack_require__(36);
 
-Object.defineProperty(exports, 'rdWellShowModule', {
+Object.defineProperty(exports, 'RdButtonModule', {
   enumerable: true,
   get: function get() {
-    return _rdWellShow.rdWellShowModule;
+    return _rdButton.RdButtonModule;
   }
 });
 
@@ -38323,33 +38802,15 @@ Object.defineProperty(exports, 'rdWellShowModule', {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.rdWellShowModule = undefined;
+exports.RdButtonModule = undefined;
 
-var _rdWellShow = __webpack_require__(37);
+var _rdButton = __webpack_require__(37);
 
-var _rdWellShow2 = __webpack_require__(40);
+__webpack_require__(39);
 
-var rdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFactory', _rdWellShow2.getWellFactory).component('rdWellShow', _rdWellShow.RdWellShowComponent).config(function ($routeProvider) {
-    $routeProvider.when('/well/:wellId', {
-        template: '<rd-well-show></rd-well-show>',
-        resolve: {
-            test: [function () {
-                //return function() {
-                console.log('hello from resolve');
-                //}
-            }]
-            // console.log('hello from resolve', this.wellId);
-            // this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId)
-            //     .then((response) => {
-            //         resolveWell = response.data.well[0];
-            //     }, (response) => {
-            //         console.log('http error', response);
-            //     })
-        }
-    });
-}).name;
+var RdButtonModule = angular.module('rdButtonModule', []).component('rdButton', _rdButton.RdButtonComponent).name;
 
-exports.rdWellShowModule = rdWellShowModule;
+exports.RdButtonModule = RdButtonModule;
 
 /***/ }),
 /* 37 */
@@ -38361,29 +38822,98 @@ exports.rdWellShowModule = rdWellShowModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.RdWellShowComponent = undefined;
+exports.RdButtonComponent = undefined;
 
-var _rdWellShow = __webpack_require__(38);
+var _rdButton = __webpack_require__(38);
 
-var _rdWellShow2 = __webpack_require__(39);
-
-var _rdWellShow3 = _interopRequireDefault(_rdWellShow2);
+var _rdButton2 = _interopRequireDefault(_rdButton);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var RdWellShowComponent = {
+var RdButtonComponent = {
     bindings: {
-        well: '<',
-        resolveWell: '<'
+        buttonUrl: '@',
+        buttonIcon: '@'
     },
-    controller: _rdWellShow.RdWellShowController,
-    template: _rdWellShow3.default
+    template: _rdButton2.default,
+    transclude: true
 };
 
-exports.RdWellShowComponent = RdWellShowComponent;
+exports.RdButtonComponent = RdButtonComponent;
 
 /***/ }),
 /* 38 */
+/***/ (function(module, exports) {
+
+module.exports = "<a ng-href=\"/#!/{{$ctrl.buttonUrl}}\">\n    <div class=\"rd-button\">\n        <i class=\"fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary\"></i>\n        <h3 class=\"home-heading\"><span ng-transclude></span></h3>\n    </div>\n</a>    ";
+
+/***/ }),
+/* 39 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(40);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./rd-button.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./rd-button.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 40 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, ".rd-button {\n    background-color: #FFFFFF;\n    border: 2px solid lightblue;\n    border-radius: 25px;\n    height: 45vh;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 41 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _rdWellShow = __webpack_require__(42);
+
+Object.defineProperty(exports, 'RdWellShowModule', {
+  enumerable: true,
+  get: function get() {
+    return _rdWellShow.RdWellShowModule;
+  }
+});
+
+/***/ }),
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38392,50 +38922,71 @@ exports.RdWellShowComponent = RdWellShowComponent;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
+exports.RdWellShowModule = undefined;
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+var _rdWellShow = __webpack_require__(43);
 
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+var _rdWellShow2 = __webpack_require__(45);
 
-var RdWellShowController = function () {
-    function RdWellShowController($http, $routeParams) {
-        _classCallCheck(this, RdWellShowController);
+var _rdWellShow3 = __webpack_require__(2);
 
-        this.$http = $http;
-        this.wellId = $routeParams.wellId;
-        this.mapIsReady = false;
-    }
+__webpack_require__(46);
 
-    _createClass(RdWellShowController, [{
-        key: '$onInit',
-        value: function $onInit() {
-            var _this = this;
-
-            console.log('hello');
-            this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + this.wellId).then(function (response) {
-                _this.well = response.data.well[0];
-            }, function (response) {
-                console.log('http error', response);
-            }).then(function () {
-                _this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + _this.well.latitude + "," + _this.well.longitude;
-                _this.mapIsReady = true;
-            });
+var RdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFactory', _rdWellShow2.getWellFactory).component('rdWellShow', _rdWellShow.RdWellShowComponent).config(function ($routeProvider) {
+    $routeProvider.when('/well/:wellId', {
+        template: '<rd-well-show></rd-well-show>',
+        resolve: {
+            well: function well($http, $route) {
+                // return $http.get('http://localhost:3000/api/wells/' + $route.current.params.wellId)
+                return $http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/' + $route.current.params.wellId).then(function (response) {
+                    console.log('hello from resolve get', response.data.well[0]);
+                    return response.data.well[0];
+                }, function (response) {
+                    console.log('resolve http error', response);
+                });
+            }
         }
-    }]);
+    });
+}).name;
 
-    return RdWellShowController;
-}();
-
-exports.RdWellShowController = RdWellShowController;
+exports.RdWellShowModule = RdWellShowModule;
 
 /***/ }),
-/* 39 */
+/* 43 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.RdWellShowComponent = undefined;
+
+var _rdWellShow = __webpack_require__(2);
+
+var _rdWellShow2 = __webpack_require__(44);
+
+var _rdWellShow3 = _interopRequireDefault(_rdWellShow2);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var RdWellShowComponent = {
+    bindings: {},
+    controller: _rdWellShow.RdWellShowController,
+    template: _rdWellShow3.default
+};
+
+exports.RdWellShowComponent = RdWellShowComponent;
+
+/***/ }),
+/* 44 */
 /***/ (function(module, exports) {
 
-module.exports = "<style>\n    .well-info {\n        border: 1px solid black;\n    }\n\n    .rd-map-container {\n        margin: 20px;\n    }\n</style>\n\n<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"800\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
+module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
 
 /***/ }),
-/* 40 */
+/* 45 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38476,7 +39027,52 @@ exports.getWellFactory = getWellFactory;
 // export { getWellService };
 
 /***/ }),
-/* 41 */
+/* 46 */
+/***/ (function(module, exports, __webpack_require__) {
+
+// style-loader: Adds some css to the DOM by adding a <style> tag
+
+// load the styles
+var content = __webpack_require__(47);
+if(typeof content === 'string') content = [[module.i, content, '']];
+// Prepare cssTransformation
+var transform;
+
+var options = {"hmr":true}
+options.transform = transform
+// add the styles to the DOM
+var update = __webpack_require__(1)(content, options);
+if(content.locals) module.exports = content.locals;
+// Hot Module Replacement
+if(false) {
+	// When the styles change, update the <style> tags
+	if(!content.locals) {
+		module.hot.accept("!!../../../node_modules/css-loader/index.js!./rd-well-show.css", function() {
+			var newContent = require("!!../../../node_modules/css-loader/index.js!./rd-well-show.css");
+			if(typeof newContent === 'string') newContent = [[module.id, newContent, '']];
+			update(newContent);
+		});
+	}
+	// When the module is disposed, remove the <style> tags
+	module.hot.dispose(function() { update(); });
+}
+
+/***/ }),
+/* 47 */
+/***/ (function(module, exports, __webpack_require__) {
+
+exports = module.exports = __webpack_require__(0)(undefined);
+// imports
+
+
+// module
+exports.push([module.i, ".well-info {\n    border: 1px solid black;\n}\n\n.rd-map-container {\n    margin: 20px;\n}", ""]);
+
+// exports
+
+
+/***/ }),
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38486,17 +39082,17 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdMap = __webpack_require__(42);
+var _rdMap = __webpack_require__(49);
 
-Object.defineProperty(exports, 'rdMapModule', {
+Object.defineProperty(exports, 'RdMapModule', {
   enumerable: true,
   get: function get() {
-    return _rdMap.rdMapModule;
+    return _rdMap.RdMapModule;
   }
 });
 
 /***/ }),
-/* 42 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38505,13 +39101,13 @@ Object.defineProperty(exports, 'rdMapModule', {
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.rdMapModule = undefined;
+exports.RdMapModule = undefined;
 
-var _rdMap = __webpack_require__(43);
+var _rdMap = __webpack_require__(50);
 
-var _rdMap2 = __webpack_require__(0);
+var _rdMap2 = __webpack_require__(3);
 
-var rdMapModule = angular.module('rdMapModule', []).controller('RdMapController', _rdMap2.RdMapController).component('rdMap', _rdMap.RdMapComponent).config(function ($sceDelegateProvider) {
+var RdMapModule = angular.module('rdMapModule', []).controller('RdMapController', _rdMap2.RdMapController).component('rdMap', _rdMap.RdMapComponent).config(function ($sceDelegateProvider) {
     $sceDelegateProvider.resourceUrlWhitelist([
     // Allow same origin resource loads.
     'self',
@@ -38519,10 +39115,10 @@ var rdMapModule = angular.module('rdMapModule', []).controller('RdMapController'
     'https://www.google.com/maps/**']);
 }).name;
 
-exports.rdMapModule = rdMapModule;
+exports.RdMapModule = RdMapModule;
 
 /***/ }),
-/* 43 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38533,9 +39129,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.RdMapComponent = undefined;
 
-var _rdMap = __webpack_require__(0);
+var _rdMap = __webpack_require__(3);
 
-var _rdMap2 = __webpack_require__(44);
+var _rdMap2 = __webpack_require__(51);
 
 var _rdMap3 = _interopRequireDefault(_rdMap2);
 
@@ -38552,7 +39148,7 @@ var RdMapComponent = {
 exports.RdMapComponent = RdMapComponent;
 
 /***/ }),
-/* 44 */
+/* 51 */
 /***/ (function(module, exports) {
 
 module.exports = "<!-- <div id=\"google-map\">\n    <iframe\n        width=\"600\"\n        height=\"450\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div> -->\n\n{{$ctrl.well.latitude}},{{$ctrl.well.longitude}}";

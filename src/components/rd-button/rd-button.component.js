@@ -1,15 +1,12 @@
-import { RdButtonController } from './rd-button.controller';
-
 import template from './rd-button.html';
 
-const rdButtonComponent = {
+const RdButtonComponent = {
     bindings: {
         buttonUrl: '@',
         buttonIcon: '@',
     },
-    controller: RdButtonController,
     template,
     transclude: true,
 }
 
-export { rdButtonComponent };
+export { RdButtonComponent };

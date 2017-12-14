@@ -1,8 +1,8 @@
 import { RdListItemComponent } from './rd-list-item.component';
 
-const rdListItemModule = angular
+const RdListItemModule = angular
     .module('rdListItemModule', [])
     .component('rdListItem', RdListItemComponent)
     .name;
 
-export { rdListItemModule };
+export { RdListItemModule };

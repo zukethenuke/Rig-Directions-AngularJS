@@ -1,1 +1,1 @@
-export { rdListModule } from './rd-list.module';
+export { RdListModule } from './rd-list.module';

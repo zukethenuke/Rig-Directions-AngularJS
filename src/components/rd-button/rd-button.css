@@ -1,0 +1,9 @@
+.rd-button {
+    background-color: #FFFFFF;
+    border: 2px solid lightblue;
+    border-radius: 25px;
+    height: 45vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

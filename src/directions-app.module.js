@@ -1,25 +1,25 @@
 import angular from 'angular';
 import ngRoute from 'angular-route';
 import angularFilter from 'angular-filter';
-import { searchModule } from './components/search';
-import { homeModule } from './components/home';
-import { rdButtonModule } from './components/rd-button';
-import { rdWellShowModule } from './components/rd-well-show';
-import { rdMapModule } from './components/rd-map';
+import { RdSearchModule } from './components/rd-search';
+import { RdHomeModule } from './components/rd-home';
+import { RdButtonModule } from './components/rd-button';
+import { RdWellShowModule } from './components/rd-well-show';
+import { RdMapModule } from './components/rd-map';
 
 const directionsAppModule = angular.module('directionsAppModule', [
     "ngRoute", 
     angularFilter, 
-    searchModule, 
-    homeModule, 
-    rdButtonModule, 
-    rdWellShowModule,
-    rdMapModule,
+    RdSearchModule, 
+    RdHomeModule, 
+    RdButtonModule, 
+    RdWellShowModule,
+    RdMapModule,
 ])
     .config(function($routeProvider){
         $routeProvider
-            .when('/', {template: `<home-component></home-component>`})
-            .when('/search', {template: `<search-component></search-component>`})
+            .when('/', {template: `<rd-home></rd-home>`})
+            .when('/search', {template: `<rd-search></rd-search>`})
             .when('/near', {templateUrl: 'src/views/near.tpl.html'})
     })
 ;

@@ -1,1 +1,1 @@
-export { rdWellShowModule } from './rd-well-show.module';
+export { RdWellShowModule } from './rd-well-show.module';

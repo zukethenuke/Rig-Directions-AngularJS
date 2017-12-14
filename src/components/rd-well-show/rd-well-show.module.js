@@ -1,8 +1,9 @@
 import { RdWellShowComponent } from './rd-well-show.component';
 import { getWellFactory } from './rd-well-show.factory';
 import { RdWellShowController } from './rd-well-show.controller'; 
+import './rd-well-show.css';
 
-const rdWellShowModule = angular
+const RdWellShowModule = angular
     .module('rdWellShowModule', [])
     .factory('getWellFactory', getWellFactory)
     .component('rdWellShow', RdWellShowComponent)
@@ -27,4 +28,4 @@ const rdWellShowModule = angular
     })
     .name;
 
-export { rdWellShowModule };
+export { RdWellShowModule };

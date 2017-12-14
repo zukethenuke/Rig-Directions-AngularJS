@@ -1,1 +1,1 @@
-export { rdMapModule } from './rd-map.module';
+export { RdMapModule } from './rd-map.module';

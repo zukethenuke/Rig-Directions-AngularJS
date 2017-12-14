@@ -1,0 +1,1 @@
+export { RdHomeModule } from './rd-home.module';
