@@ -6,10 +6,11 @@ body {
     background: #FFFFFF;
     margin-left: 20px;
     margin-top: 10px;
-    width: 100px;
+    padding: 40px 20px;
+    width: 200px;
     border: 1px solid lightgrey;
     border-radius: 8px;
-    font-size: 35px;
+    font-size: 50px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -18,9 +19,9 @@ body {
 
 #search-container {
     display: grid;
-    grid-template-rows: 80px 100px 1fr;
-    grid-gap: 1em;
-    grid-template-areas: "back" "input" "results";
+    grid-template-rows: 150px 150px 1fr;
+    grid-gap: 2em;
+    grid-template-areas: "back" "input" "clear" "results";
 }
 
 .input-wrapper {
@@ -29,15 +30,14 @@ body {
     display: grid;
     grid-template-columns: 6fr 1fr;
     grid-template-areas: "s s x";
-    margin-right: 20px;
-    padding: 20px;
+    padding: 0px 20px;
 }
 
 .search-box {
-    font-size: 35px;
+    font-size: 50px;
     padding: 20px 0 20px 20px;
     background: #FFFFFF;
-    width: 100%;
+    width: 80vw;
     box-shadow: 2px 3px 5px #888888;
     border: 1px solid lightgrey;
     align-items: stretch;
@@ -47,6 +47,7 @@ body {
     box-shadow: 2px 3px 5px #888888;
     border: 1px solid lightgrey;
     border-left-color: transparent;
+    font-size: 30px;
 }
 
 .well-list-item {
