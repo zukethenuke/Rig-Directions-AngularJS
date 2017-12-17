@@ -38237,7 +38237,9 @@ var _rdSearch3 = _interopRequireDefault(_rdSearch2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var RdSearchComponent = {
-    bindings: {},
+    bindings: {
+        currentLocation: '<'
+    },
     controller: _rdSearch.RdSearchController,
     template: _rdSearch3.default
 };
@@ -38270,12 +38272,12 @@ var RdSearchController = function () {
         key: "$onInit",
         value: function $onInit() {
             if (localStorage.getItem("searchValue")) {
-                this.listFromLocalStorage();
+                this.getSearchFromLocalStorage();
             };
         }
     }, {
-        key: "listFromLocalStorage",
-        value: function listFromLocalStorage() {
+        key: "getSearchFromLocalStorage",
+        value: function getSearchFromLocalStorage() {
             this.searchValue = localStorage.getItem("searchValue");
             this.getWellList();
         }
@@ -38329,7 +38331,7 @@ exports.RdSearchController = RdSearchController;
 /* 16 */
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well name\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
+module.exports = "<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well Name/API #\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
 
 /***/ }),
 /* 17 */
@@ -38371,7 +38373,7 @@ exports = module.exports = __webpack_require__(0)(undefined);
 
 
 // module
-exports.push([module.i, "body {\n    background: #f2f2f2;\n}\n\n.button {\n    background: #FFFFFF;\n    margin-left: 20px;\n    margin-top: 10px;\n    width: 100px;\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    font-size: 35px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 2px 3px 5px #888888;\n}\n\n#search-container {\n    display: grid;\n    grid-template-rows: 80px 100px 1fr;\n    grid-gap: 1em;\n    grid-template-areas: \"back\" \"input\" \"results\";\n}\n\n.input-wrapper {\n    /* needed to create a div for full width input field */\n    grid-area: input;\n    display: grid;\n    grid-template-columns: 6fr 1fr;\n    grid-template-areas: \"s s x\";\n    margin-right: 20px;\n    padding: 20px;\n}\n\n.search-box {\n    font-size: 35px;\n    padding: 20px 0 20px 20px;\n    background: #FFFFFF;\n    width: 100%;\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    align-items: stretch;\n}\n\n.close-icon {\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    border-left-color: transparent;\n}\n\n.well-list-item {\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    line-height: 10px;\n    margin: 30px;\n    padding: 10px;\n    background: white;\n    box-shadow: 2px 3px 5px #888888;\n    white-space: nowrap;\n    font-size: 35px;\n    text-overflow: ellipsis;\n}\n\na {\n    text-decoration: none;\n}\n\n#message {\n    background: #e57373;\n    color: #FFFFFF;\n    font-size: 20px;\n    padding: 40px;\n    margin: 20px 100px;\n    text-align: center;\n    border-radius: 8px;\n    box-shadow: 2px 3px 5px #888888;\n}", ""]);
+exports.push([module.i, "body {\n    background: #f2f2f2;\n}\n\n.button {\n    background: #FFFFFF;\n    margin-left: 20px;\n    margin-top: 10px;\n    padding: 40px 40px;\n    width: fit-content;\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    font-size: 50px;\n    display: flex;\n    align-items: center;\n    justify-content: center;\n    box-shadow: 2px 3px 5px #888888;\n}\n\n#search-container {\n    display: grid;\n    grid-template-rows: 150px 150px 1fr;\n    grid-gap: 2em;\n    grid-template-areas: \"back\" \"input\" \"clear\" \"results\";\n}\n\n.input-wrapper {\n    /* needed to create a div for full width input field */\n    grid-area: input;\n    display: grid;\n    grid-template-columns: 6fr 1fr;\n    grid-template-areas: \"s s x\";\n    padding: 0px 20px;\n}\n\n.search-box {\n    font-size: 50px;\n    padding: 20px 0 20px 20px;\n    background: #FFFFFF;\n    width: 80vw;\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    align-items: stretch;\n}\n\n.close-icon {\n    box-shadow: 2px 3px 5px #888888;\n    border: 1px solid lightgrey;\n    border-left-color: transparent;\n    font-size: 30px;\n}\n\n.well-list-item {\n    border: 1px solid lightgrey;\n    border-radius: 8px;\n    line-height: 10px;\n    margin: 30px;\n    padding: 10px;\n    background: white;\n    box-shadow: 2px 3px 5px #888888;\n    white-space: nowrap;\n    font-size: 35px;\n    text-overflow: ellipsis;\n}\n\na {\n    text-decoration: none;\n}\n\n#message {\n    background: #e57373;\n    color: #FFFFFF;\n    font-size: 50px;\n    padding: 40px;\n    margin: 20px 100px;\n    text-align: center;\n    border-radius: 8px;\n    box-shadow: 2px 3px 5px #888888;\n}", ""]);
 
 // exports
 
@@ -38536,7 +38538,9 @@ var _rdHome3 = _interopRequireDefault(_rdHome2);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var RdHomeComponent = {
-    bindings: {},
+    bindings: {
+        currentLocation: '<'
+    },
     controller: _rdHome.RdHomeController,
     template: _rdHome3.default
 };
@@ -38563,13 +38567,28 @@ var RdHomeController = function () {
         _classCallCheck(this, RdHomeController);
 
         this.$http = $http;
+        this.currentLocation = { "x": "y" };
     }
 
     _createClass(RdHomeController, [{
-        key: '$onInit',
+        key: "$onInit",
         value: function $onInit() {
+            var _this = this;
+
             // wake up heroku api server
             this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/234');
+
+            var getLocation = function getLocation() {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(function (position) {
+                        _this.currentLocation = position;
+                    });
+                } else {
+                    alert("Geolocation is not supported by this browser.");
+                }
+            };
+
+            getLocation();
         }
     }]);
 
@@ -38582,7 +38601,7 @@ exports.RdHomeController = RdHomeController;
 /* 24 */
 /***/ (function(module, exports) {
 
-module.exports = "<div class=\"home-screen\">\n    <rd-button button-url=\"search\" button-icon=\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
+module.exports = "<div class=\"home-screen\">\n    <rd-button button-url=\"search\" currentLocation=\"$ctrl.currentLocation\" button-icon=\"\">Search</rd-button>\n    <rd-button button-url=\"near\" button-icon=\"\">Near</rd-button>\n</div>\n";
 
 /***/ }),
 /* 25 */
@@ -38983,7 +39002,7 @@ exports.RdWellShowComponent = RdWellShowComponent;
 /* 44 */
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
+module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<a class=\"button\" href=\"/#!/search\">Back To Search</a>\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
 
 /***/ }),
 /* 45 */
