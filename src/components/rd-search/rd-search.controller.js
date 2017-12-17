@@ -4,10 +4,10 @@ class RdSearchController {
     }
 
     $onInit() {
-        if (localStorage.getItem("searchValue")) { this.listFromLocalStorage() };
+        if (localStorage.getItem("searchValue")) { this.getSearchFromLocalStorage() };
     }
 
-    listFromLocalStorage() {
+    getSearchFromLocalStorage() {
         this.searchValue = localStorage.getItem("searchValue");
         this.getWellList();
     }
