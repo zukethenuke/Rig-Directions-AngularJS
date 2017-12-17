@@ -2,7 +2,9 @@ import { RdHomeController } from './rd-home.controller';
 import template from './rd-home.html';
 
 const RdHomeComponent = {
-    bindings: {},
+    bindings: {
+        currentLocation: '<'
+    },
     controller: RdHomeController,
     template,
 };

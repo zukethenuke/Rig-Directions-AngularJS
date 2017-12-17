@@ -1,6 +1,7 @@
 class RdSearchController {
-    constructor($http) {
+    constructor($http, $scope) {
         this.$http = $http;
+        debugger;
     }
 
     $onInit() {
