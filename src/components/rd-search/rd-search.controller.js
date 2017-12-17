@@ -1,6 +1,7 @@
 class RdSearchController {
     constructor($http) {
         this.$http = $http;
+        this.loading = false;
     }
 
     $onInit() {
@@ -13,6 +14,7 @@ class RdSearchController {
     }
 
     getWellList() {
+        this.loading = true;
         this.message = '';
         const searchValue = this.searchValue;
 
@@ -39,9 +41,8 @@ class RdSearchController {
             this.message = response.data.error;
         }else {
             this.wells = response.data.wells;
-            // console.log(this.wells);
-            // localStorage.setItem("wells", this.wells);
         };
+        this.loading = false;
     }
 }
 
