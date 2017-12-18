@@ -533,16 +533,27 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var RdWellShowController = function () {
-    function RdWellShowController($scope) {
+    function RdWellShowController($scope, rdCurrentLocationFactory) {
         _classCallCheck(this, RdWellShowController);
 
         this.well = $scope.$parent.$resolve.well;
-        this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + this.well.latitude + "," + this.well.longitude;
+        this.rdCurrentLocationFactory = rdCurrentLocationFactory;
+        this.origin = {};
+        this.mapReady = false;
     }
 
     _createClass(RdWellShowController, [{
         key: "$onInit",
-        value: function $onInit() {}
+        value: function $onInit() {
+            if (this.rdCurrentLocationFactory.currentLocation.coords) {
+                this.origin.latitude = this.rdCurrentLocationFactory.currentLocation.coords.latitude;
+                this.origin.longitude = this.rdCurrentLocationFactory.currentLocation.coords.longitude;
+                this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=" + this.origin.latitude + "," + this.origin.longitude + "&destination=" + this.well.latitude + "," + this.well.longitude;
+            } else {
+                this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + this.well.latitude + "," + this.well.longitude;
+            }
+            this.mapReady = true;
+        }
     }]);
 
     return RdWellShowController;
@@ -636,11 +647,11 @@ var _rdSearch = __webpack_require__(12);
 
 var _rdHome = __webpack_require__(20);
 
-var _rdButton = __webpack_require__(35);
+var _rdButton = __webpack_require__(36);
 
-var _rdWellShow = __webpack_require__(41);
+var _rdWellShow = __webpack_require__(42);
 
-var _rdMap = __webpack_require__(48);
+var _rdMap = __webpack_require__(49);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -38298,7 +38309,13 @@ var RdSearchController = function () {
                 url: 'https://mysterious-wildwood-62874.herokuapp.com/api/wells',
                 params: { searchValue: searchValue }
             }).then(function (response) {
-                return _this.formatRseponse(response);
+                if (response.data.error) {
+                    _this.wells = [];
+                    _this.message = response.data.error;
+                } else {
+                    _this.wells = response.data.wells;
+                };
+                _this.loading = false;
             });
         }
     }, {
@@ -38308,17 +38325,6 @@ var RdSearchController = function () {
             this.message = '';
             this.wells = [];
             localStorage.setItem("searchValue", '');
-        }
-    }, {
-        key: "formatRseponse",
-        value: function formatRseponse(response) {
-            if (response.data.error) {
-                this.wells = [];
-                this.message = response.data.error;
-            } else {
-                this.wells = response.data.wells;
-            };
-            this.loading = false;
         }
     }]);
 
@@ -38511,9 +38517,11 @@ var _rdList = __webpack_require__(25);
 
 var _rdListItem = __webpack_require__(29);
 
-__webpack_require__(33);
+var _rdHome2 = __webpack_require__(33);
 
-var RdHomeModule = angular.module('RdHomeModule', [_rdList.RdListModule, _rdListItem.RdListItemModule]).component('rdHome', _rdHome.RdHomeComponent).name;
+__webpack_require__(34);
+
+var RdHomeModule = angular.module('RdHomeModule', [_rdList.RdListModule, _rdListItem.RdListItemModule]).component('rdHome', _rdHome.RdHomeComponent).factory('rdCurrentLocationFactory', _rdHome2.rdCurrentLocationFactory).name;
 
 exports.RdHomeModule = RdHomeModule;
 
@@ -38563,38 +38571,27 @@ var _createClass = function () { function defineProperties(target, props) { for 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var RdHomeController = function () {
-    function RdHomeController($http) {
+    function RdHomeController($http, rdCurrentLocationFactory) {
         _classCallCheck(this, RdHomeController);
 
         this.$http = $http;
+        this.rdCurrentLocationFactory = rdCurrentLocationFactory;
         this.currentLocation = { "x": "y" };
     }
 
     _createClass(RdHomeController, [{
         key: "$onInit",
         value: function $onInit() {
-            var _this = this;
-
             // wake up heroku api server
             this.$http.get('https://mysterious-wildwood-62874.herokuapp.com/api/wells/234');
-
-            var getLocation = function getLocation() {
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function (position) {
-                        _this.currentLocation = position;
-                    });
-                } else {
-                    alert("Geolocation is not supported by this browser.");
-                }
-            };
-
-            getLocation();
+            this.rdCurrentLocationFactory.getCurrentLocation();
         }
     }]);
 
     return RdHomeController;
 }();
 
+RdHomeController.$inject = ['$http', 'rdCurrentLocationFactory'];
 exports.RdHomeController = RdHomeController;
 
 /***/ }),
@@ -38750,10 +38747,39 @@ module.exports = "<div class=\"well-list-item\" >\n    <a ng-href=\"/#!/well/{{$
 /* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+var rdCurrentLocationFactory = function rdCurrentLocationFactory() {
+    var factory = this;
+    factory.currentLocation = {};
+
+    factory.getCurrentLocation = function () {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function (position) {
+                factory.currentLocation = position;
+            });
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    };
+
+    return factory;
+};
+
+exports.rdCurrentLocationFactory = rdCurrentLocationFactory;
+
+/***/ }),
+/* 34 */
+/***/ (function(module, exports, __webpack_require__) {
+
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(34);
+var content = __webpack_require__(35);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -38778,7 +38804,7 @@ if(false) {
 }
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -38792,7 +38818,7 @@ exports.push([module.i, "body {\n    background-color: #f2f2f2;\n}\n\n.home-scre
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38802,7 +38828,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdButton = __webpack_require__(36);
+var _rdButton = __webpack_require__(37);
 
 Object.defineProperty(exports, 'RdButtonModule', {
   enumerable: true,
@@ -38810,26 +38836,6 @@ Object.defineProperty(exports, 'RdButtonModule', {
     return _rdButton.RdButtonModule;
   }
 });
-
-/***/ }),
-/* 36 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-exports.RdButtonModule = undefined;
-
-var _rdButton = __webpack_require__(37);
-
-__webpack_require__(39);
-
-var RdButtonModule = angular.module('rdButtonModule', []).component('rdButton', _rdButton.RdButtonComponent).name;
-
-exports.RdButtonModule = RdButtonModule;
 
 /***/ }),
 /* 37 */
@@ -38841,9 +38847,29 @@ exports.RdButtonModule = RdButtonModule;
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-exports.RdButtonComponent = undefined;
+exports.RdButtonModule = undefined;
 
 var _rdButton = __webpack_require__(38);
+
+__webpack_require__(40);
+
+var RdButtonModule = angular.module('rdButtonModule', []).component('rdButton', _rdButton.RdButtonComponent).name;
+
+exports.RdButtonModule = RdButtonModule;
+
+/***/ }),
+/* 38 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.RdButtonComponent = undefined;
+
+var _rdButton = __webpack_require__(39);
 
 var _rdButton2 = _interopRequireDefault(_rdButton);
 
@@ -38861,19 +38887,19 @@ var RdButtonComponent = {
 exports.RdButtonComponent = RdButtonComponent;
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports) {
 
 module.exports = "<a ng-href=\"/#!/{{$ctrl.buttonUrl}}\">\n    <div class=\"rd-button\">\n        <i class=\"fa {{$ctrl.buttonIcon}} fa-4 feature-icon text-primary\"></i>\n        <h3 class=\"home-heading\"><span ng-transclude></span></h3>\n    </div>\n</a>    ";
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(40);
+var content = __webpack_require__(41);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -38898,7 +38924,7 @@ if(false) {
 }
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -38912,7 +38938,7 @@ exports.push([module.i, ".rd-button {\n    background-color: #FFFFFF;\n    borde
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38922,7 +38948,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdWellShow = __webpack_require__(42);
+var _rdWellShow = __webpack_require__(43);
 
 Object.defineProperty(exports, 'RdWellShowModule', {
   enumerable: true,
@@ -38932,7 +38958,7 @@ Object.defineProperty(exports, 'RdWellShowModule', {
 });
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38943,13 +38969,13 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.RdWellShowModule = undefined;
 
-var _rdWellShow = __webpack_require__(43);
+var _rdWellShow = __webpack_require__(44);
 
-var _rdWellShow2 = __webpack_require__(45);
+var _rdWellShow2 = __webpack_require__(46);
 
 var _rdWellShow3 = __webpack_require__(2);
 
-__webpack_require__(46);
+__webpack_require__(47);
 
 var RdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFactory', _rdWellShow2.getWellFactory).component('rdWellShow', _rdWellShow.RdWellShowComponent).config(function ($routeProvider) {
     $routeProvider.when('/well/:wellId', {
@@ -38971,7 +38997,7 @@ var RdWellShowModule = angular.module('rdWellShowModule', []).factory('getWellFa
 exports.RdWellShowModule = RdWellShowModule;
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -38984,7 +39010,7 @@ exports.RdWellShowComponent = undefined;
 
 var _rdWellShow = __webpack_require__(2);
 
-var _rdWellShow2 = __webpack_require__(44);
+var _rdWellShow2 = __webpack_require__(45);
 
 var _rdWellShow3 = _interopRequireDefault(_rdWellShow2);
 
@@ -38999,13 +39025,13 @@ var RdWellShowComponent = {
 exports.RdWellShowComponent = RdWellShowComponent;
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<a class=\"button\" href=\"/#!/search\">Back To Search</a>\n\n<div id=\"google-map\" ng-cloak>\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
+module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<a class=\"button\" href=\"/#!/search\">Back To Search</a>\n\n<div id=\"google-map\" ng-cloak ng-if=\"$ctrl.mapReady\">\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39046,13 +39072,13 @@ exports.getWellFactory = getWellFactory;
 // export { getWellService };
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 // style-loader: Adds some css to the DOM by adding a <style> tag
 
 // load the styles
-var content = __webpack_require__(47);
+var content = __webpack_require__(48);
 if(typeof content === 'string') content = [[module.i, content, '']];
 // Prepare cssTransformation
 var transform;
@@ -39077,7 +39103,7 @@ if(false) {
 }
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 exports = module.exports = __webpack_require__(0)(undefined);
@@ -39091,7 +39117,7 @@ exports.push([module.i, ".well-info {\n    border: 1px solid black;\n}\n\n.rd-ma
 
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39101,7 +39127,7 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
-var _rdMap = __webpack_require__(49);
+var _rdMap = __webpack_require__(50);
 
 Object.defineProperty(exports, 'RdMapModule', {
   enumerable: true,
@@ -39111,7 +39137,7 @@ Object.defineProperty(exports, 'RdMapModule', {
 });
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39122,7 +39148,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.RdMapModule = undefined;
 
-var _rdMap = __webpack_require__(50);
+var _rdMap = __webpack_require__(51);
 
 var _rdMap2 = __webpack_require__(3);
 
@@ -39137,7 +39163,7 @@ var RdMapModule = angular.module('rdMapModule', []).controller('RdMapController'
 exports.RdMapModule = RdMapModule;
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -39150,7 +39176,7 @@ exports.RdMapComponent = undefined;
 
 var _rdMap = __webpack_require__(3);
 
-var _rdMap2 = __webpack_require__(51);
+var _rdMap2 = __webpack_require__(52);
 
 var _rdMap3 = _interopRequireDefault(_rdMap2);
 
@@ -39167,7 +39193,7 @@ var RdMapComponent = {
 exports.RdMapComponent = RdMapComponent;
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports) {
 
 module.exports = "<!-- <div id=\"google-map\">\n    <iframe\n        width=\"600\"\n        height=\"450\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div> -->\n\n{{$ctrl.well.latitude}},{{$ctrl.well.longitude}}";
