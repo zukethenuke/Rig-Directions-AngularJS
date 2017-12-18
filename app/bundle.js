@@ -538,14 +538,11 @@ var RdWellShowController = function () {
 
         this.well = $scope.$parent.$resolve.well;
         this.mapUrl = "https://www.google.com/maps/embed/v1/directions?key=AIzaSyDKGkdynbpEe2Vq2AJaNGxtxiDjtpyPFSE&origin=Williston+ND&destination=" + this.well.latitude + "," + this.well.longitude;
-        this.mapIsReady = false;
     }
 
     _createClass(RdWellShowController, [{
         key: "$onInit",
-        value: function $onInit() {
-            this.mapIsReady = true;
-        }
+        value: function $onInit() {}
     }]);
 
     return RdWellShowController;
@@ -38334,7 +38331,7 @@ exports.RdSearchController = RdSearchController;
 /* 16 */
 /***/ (function(module, exports) {
 
-module.exports = "<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well Name/API #\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div ng-if=\"$ctrl.loading\">\n        <div class=\"loader\"></div>\n    </div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
+module.exports = "<div id=\"search-container\">\n    <a class=\"button\" href=\"/#!/\">Home</a>\n    \n    <div class=\"input-wrapper\">  \n        <input class=\"search-box\" ng-model=\"$ctrl.searchValue\" ng-model-options=\"{ debounce: 800 }\" type=\"text\" ng-change=\"$ctrl.getWellList()\" name=\"\" placeholder=\"Operator/Lease/Well Name/API #\">\n        <button class=\"close-icon\" ng-click=\"$ctrl.clearSearch()\">X</button>\n    </div>\n\n    <div class=\"loader\" ng-if=\"$ctrl.loading\"></div>\n\n    <div id=\"message\" ng-if=\"$ctrl.message\">\n        {{$ctrl.message}}\n    </div>\n\n    <div ng-if=\"$ctrl.wells\">\n        <rd-list-item ng-repeat=\"well in $ctrl.wells\" well=\"well\"></rd-list-item>\n    </div>\n</div>\n";
 
 /***/ }),
 /* 17 */
@@ -39005,7 +39002,7 @@ exports.RdWellShowComponent = RdWellShowComponent;
 /* 44 */
 /***/ (function(module, exports) {
 
-module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<a class=\"button\" href=\"/#!/search\">Back To Search</a>\n\n<div id=\"google-map\" ng-if=\"$ctrl.mapIsReady\">\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
+module.exports = "<!-- <div class=\"rd-map-container\">\n    <rd-map well=\"$ctrl.well\"></rd-map>\n</div> -->\n\n<a class=\"button\" href=\"/#!/search\">Back To Search</a>\n\n<div id=\"google-map\" ng-cloak>\n    <iframe\n        width=\"900\"\n        height=\"1000\"\n        frameborder=\"0\" style=\"border:0\"\n        src=\"{{$ctrl.mapUrl}}\" allowfullscreen>\n    </iframe>\n</div>\n\n<div class=\"well-info\" ng-repeat=\"(key, value) in $ctrl.well\">\n    {{key}}: {{value}}\n</div>\n\n";
 
 /***/ }),
 /* 45 */
